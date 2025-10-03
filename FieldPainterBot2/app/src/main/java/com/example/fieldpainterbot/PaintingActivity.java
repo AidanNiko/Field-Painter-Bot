@@ -17,10 +17,10 @@ public class PaintingActivity extends AppCompatActivity {
         TextView title = findViewById(R.id.paintingTitle);
 
         if ("soccer".equals(fieldType)) {
-            title.setText("Painting: Soccer Field");
+            title.setText(getString(R.string.Label_Soccer));
             // TODO: Load soccer field layout
         } else if ("baseball".equals(fieldType)) {
-            title.setText("Painting: Baseball Field");
+            title.setText(getString(R.string.Label_Baseball));
             // TODO: Load baseball field layout
         }
 

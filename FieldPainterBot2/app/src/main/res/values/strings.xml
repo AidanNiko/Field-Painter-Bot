@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Field Painter Bot</string>
+    <string name="Label_Soccer">Painting: Soccer Field</string>
+    <string name="Label_Baseball">Painting: Baseball Field</string>
+    <string name="bg_desc">Background image</string>
+    <string name="hp_title">Field Painter Bot</string>
 </resources>

@@ -17,9 +17,10 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.Objects;
+
 public class ConnectionActivity extends AppCompatActivity {
     private ConnectionViewModel viewModel;
-    private DeviceAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,13 +59,13 @@ public class ConnectionActivity extends AppCompatActivity {
         }
 
         RecyclerView recyclerView = findViewById(R.id.deviceList);
-        adapter = new DeviceAdapter(device -> viewModel.connectToDevice(device));
+        DeviceAdapter adapter = new DeviceAdapter(device -> viewModel.connectToDevice(device));
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
         DividerItemDecoration divider = new DividerItemDecoration(
                 recyclerView.getContext(), LinearLayoutManager.VERTICAL);
-        divider.setDrawable(ContextCompat.getDrawable(this, R.drawable.divider));
+        divider.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(this, R.drawable.divider)));
         recyclerView.addItemDecoration(divider);
 
 

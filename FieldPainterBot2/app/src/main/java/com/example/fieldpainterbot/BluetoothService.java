@@ -20,17 +20,24 @@ import androidx.core.content.ContextCompat;
 
 public class BluetoothService {
     private final BluetoothAdapter adapter;
-    private final MutableLiveData<List<BluetoothDevice>> devices;
     private final MutableLiveData<ConnectionStatus> connectionStatus;
     private final List<BluetoothDevice> foundDevices = new ArrayList<>();
 
     public BluetoothService(Context context, MutableLiveData<List<BluetoothDevice>> devices,
                             MutableLiveData<ConnectionStatus> connectionStatus) {
         this.adapter = BluetoothAdapter.getDefaultAdapter();
-        this.devices = devices;
         this.connectionStatus = connectionStatus;
 
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (device != null && !foundDevices.contains(device)) {
+                    foundDevices.add(device);
+                    devices.postValue(new ArrayList<>(foundDevices));
+                }
+            }
+        };
         context.registerReceiver(receiver, filter);
     }
 
@@ -54,13 +61,4 @@ public class BluetoothService {
         connectionStatus.postValue(ConnectionStatus.CONNECTED);
     }
 
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            if (device != null && !foundDevices.contains(device)) {
-                foundDevices.add(device);
-                devices.postValue(new ArrayList<>(foundDevices));
-            }
-        }
-    };
 }
