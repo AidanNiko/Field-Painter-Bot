@@ -40,7 +40,7 @@
                 android:gravity="center"
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="12dp"
-                android:fontFamily="@font/montserrat_extrabolditalic"/>
+                android:fontFamily="@font/oswald_bold"/>
 
             <TextView
                 android:id="@+id/textView"
@@ -50,7 +50,7 @@
                 android:textColor="#FFFFFF"
                 android:textSize="50sp"
                 android:gravity="center"
-                android:fontFamily="@font/montserrat_extrabolditalic"
+                android:fontFamily="@font/oswald_bold"
                 android:shadowColor="#80000000"
                 android:shadowDx="4"
                 android:shadowDy="4"
@@ -62,16 +62,17 @@
             android:id="@+id/button_start"
             android:layout_width="150dp"
             android:layout_height="60dp"
+            android:layout_marginTop="172dp"
             android:text="@string/hp_buttontext"
             android:textColor="@color/black"
-            app:cornerRadius="15dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="@color/black"
             app:backgroundTint="@color/white"
-            app:layout_constraintTop_toBottomOf="@id/title_frame"
-            app:layout_constraintStart_toStartOf="parent"
+            app:cornerRadius="15dp"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="125dp"/>
+            app:layout_constraintHorizontal_bias="0.498"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/title_frame"
+            app:strokeColor="@color/black"
+            app:strokeWidth="1dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

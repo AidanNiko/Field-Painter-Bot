@@ -17,13 +17,13 @@
         android:paddingStart="20dp">
 
         <TextView
-            android:id="@+id/textView2"
+            android:id="@+id/DashboardText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/db_title"
             android:textSize="30sp"
-            android:fontFamily="@font/montserrat_extrabold"
+            android:fontFamily="@font/oswald_bold"
             android:textColor="@color/black"/>
 
         <ImageView
@@ -43,22 +43,22 @@
             android:gravity="center_vertical">
 
             <TextView
-                android:id="@+id/textView3"
+                android:id="@+id/percentLevel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="80%"
+                android:text="@string/battery_percent"
                 android:textSize="15sp"
-                android:fontFamily="@font/montserrat_extrabold"
+                android:fontFamily="@font/oswald_bold"
                 android:textColor="@color/black"
                 android:layout_marginEnd="2dp"/>
 
             <ImageView
                 android:id="@+id/battery_icon"
                 android:layout_width="55dp"
-                android:layout_height="35dp"
+                android:layout_height="45dp"
                 android:adjustViewBounds="true"
                 android:scaleType="fitStart"
-                android:src="@drawable/batteryanimate"/>
+                android:src="@drawable/battery_0"/>
         </LinearLayout>
 
     </LinearLayout>
@@ -74,14 +74,13 @@
         app:layout_constraintTop_toBottomOf="@id/header">
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/expandable_card_1"
+            android:id="@+id/header_clickable_1"
             android:layout_width="match_parent"
             android:layout_height="203dp"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
             app:cardCornerRadius="12dp"
-            app:cardElevation="6dp"
             app:strokeColor="#DDDDDD"
             app:strokeWidth="1dp">
 
@@ -92,7 +91,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/expandable_card_2"
+            android:id="@+id/header_clickable_2"
             android:layout_marginTop="50dp"
             android:layout_width="match_parent"
             android:layout_height="203dp"
@@ -100,7 +99,6 @@
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
             app:cardCornerRadius="12dp"
-            app:cardElevation="6dp"
             app:strokeColor="#DDDDDD"
             app:strokeWidth="1dp">
 
