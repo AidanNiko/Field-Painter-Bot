@@ -4,4 +4,27 @@
     <string name="Label_Baseball">Painting: Baseball Field</string>
     <string name="bg_desc">Background image</string>
     <string name="hp_title">Field Painter Bot</string>
+    <string name="hp_buttontext">Launch</string>
+    <string name="db_title">Dashboard</string>
+
+
+
+
+    <string name="box1_title">Auto Paint</string>
+    <string name="box1_desc">Automate field lines with preset templates.</string>
+    <string name="box1_action">Start</string>
+    <string name="box1_icon_cd">Auto paint icon</string>
+
+    <string name="box2_title">Manual Mode</string>
+    <string name="box2_desc">Fine‑tune lines and adjust offsets manually.</string>
+    <string name="box2_action">Open</string>
+    <string name="box2_icon_cd">Manual mode icon</string>
+
+    <string name="box3_title">Layouts</string>
+    <string name="box3_desc">Save, import, and manage custom field layouts.</string>
+    <string name="box3_action">Manage</string>
+    <string name="box3_icon_cd">Layouts icon</string>
+
+    <string name="expand_collapse">Expand or collapse</string>
+    <string name="footer_text">© 2025 Field Painter Bot</string>
 </resources>

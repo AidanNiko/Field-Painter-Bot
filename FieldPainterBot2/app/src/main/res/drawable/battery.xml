@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Battery body -->
+    <path
+        android:name="battery"
+        android:strokeColor="#000"
+        android:strokeWidth="2"
+        android:pathData="M4,7h14v10h-14z" />
+
+    <!-- Battery tip -->
+    <path
+        android:fillColor="#000"
+        android:pathData="M18,10h2v4h-2z" />
+
+    <!-- Fill level -->
+    <path
+        android:name="batteryFill"
+        android:fillColor="#4CAF50"
+        android:pathData="M5,16h12v-3h-12z"
+        android:trimPathEnd="0" />
+</vector>

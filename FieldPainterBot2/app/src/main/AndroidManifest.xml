@@ -25,10 +25,12 @@
 
         <activity android:name=".PaintingActivity" />
         <activity android:name=".ConnectionActivity" />
+        <activity android:name=".FieldChoiceActivity" />
+        <activity android:name=".DashboardActivity"/>
 
 
         <activity
-            android:name="com.example.fieldpainterbot.FieldChoiceActivity"
+            android:name="com.example.fieldpainterbot.HomepageActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
