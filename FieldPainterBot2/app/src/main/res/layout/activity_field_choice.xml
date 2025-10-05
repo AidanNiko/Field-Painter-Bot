@@ -1,64 +1,283 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#101010">
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        android:background="@drawable/genericbg">
 
-    <FrameLayout
-        android:id="@+id/soccerFieldCard"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_margin="16dp"
+    <LinearLayout
+        android:id="@+id/titleLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/baseballFieldCard"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.45">
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:src="@drawable/soccer_field" />
+        android:layout_marginBottom="20dp">
 
         <TextView
-            android:layout_width="match_parent"
+            android:id="@+id/PickFieldTitle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Soccer Field"
-            android:textColor="#FFFFFF"
-            android:textSize="24sp"
-            android:textStyle="bold"
+            android:textSize="50sp"
+            android:textColor="@color/white"
+            android:text="@string/pf_title"
             android:gravity="center"
-            android:layout_gravity="center" />
-    </FrameLayout>
+            android:fontFamily="@font/oswald_bold"/>
+    </LinearLayout>
 
-    <FrameLayout
-        android:id="@+id/baseballFieldCard"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_margin="16dp"
-        app:layout_constraintTop_toBottomOf="@id/soccerFieldCard"
+
+    <!-- Grid in center -->
+        <GridLayout
+            android:id="@+id/gridLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:rowCount="3"
+            app:layout_constraintTop_toBottomOf="@id/titleLayout"
+            app:layout_constraintBottom_toTopOf="@id/footerLayout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:alignmentMode="alignMargins"
+            android:columnOrderPreserved="false">
+            <!-- Soccer -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_soccer"
+                android:layout_width="175dp"
+                android:layout_height="175dp"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:strokeColor="#E0E0E0"
+                app:strokeWidth="1dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/soccerfield"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="bottom|center_horizontal"
+                    android:text="@string/pf_Soccer_Text"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:padding="3dp"
+                    android:textColor="@android:color/white"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Baseball -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_baseball"
+                android:layout_width="175dp"
+                android:layout_height="175dp"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:strokeColor="#E0E0E0"
+                app:strokeWidth="1dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/baseballfield"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="bottom|center_horizontal"
+                    android:text="@string/pf_Baseball_Text"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:padding="3dp"
+                    android:textColor="@android:color/white"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Tennis -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_tennis"
+                android:layout_width="175dp"
+                android:layout_height="175dp"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:strokeColor="#E0E0E0"
+                app:strokeWidth="1dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/tennisfield"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="bottom|center_horizontal"
+                    android:text="@string/pf_Tennis_Text"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:padding="3dp"
+                    android:textColor="@android:color/white"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Basketball -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_basketball"
+                android:layout_width="175dp"
+                android:layout_height="175dp"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:strokeColor="#E0E0E0"
+                app:strokeWidth="1dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/basketballfield"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="bottom|center_horizontal"
+                    android:text="@string/pf_Basketball_Text"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:padding="3dp"
+                    android:textColor="@android:color/white"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Hockey -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_hockey"
+                android:layout_width="175dp"
+                android:layout_height="175dp"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:strokeColor="#E0E0E0"
+                app:strokeWidth="1dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/hockeyfield"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="bottom|center_horizontal"
+                    android:text="@string/pf_Hockey_text"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:padding="3dp"
+                    android:textColor="@android:color/white"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Rugby -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_rugby"
+                android:layout_width="175dp"
+                android:layout_height="175dp"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:strokeColor="#E0E0E0"
+                app:strokeWidth="1dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/rugbyfield"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="bottom|center_horizontal"
+                    android:text="@string/pf_Rugby_Text"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:padding="3dp"
+                    android:textColor="@android:color/white"/>
+            </com.google.android.material.card.MaterialCardView>
+
+        </GridLayout>
+
+        <!-- Footer -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/footerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        app:cardBackgroundColor="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.45">
-
-        <ImageView
+        app:cardElevation="4dp"
+        app:cardCornerRadius="16dp">
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:src="@drawable/baseball_field" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Baseball Field"
-            android:textColor="#FFFFFF"
-            android:textSize="24sp"
-            android:textStyle="bold"
+            android:orientation="horizontal"
             android:gravity="center"
-            android:layout_gravity="center" />
-    </FrameLayout>
+            android:divider="@drawable/dividerhorizontal"
+            android:showDividers="middle">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/BackDshB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/pf_Back"
+                android:textColor="@android:color/white"
+                app:strokeColor="@color/white"
+                app:strokeWidth="1dp"
+                app:backgroundTint="@color/black"
+                android:fontFamily="@font/oswald_bold"
+                app:cornerRadius="8dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/BeginProcess"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/pf_Start"
+                android:textColor="@android:color/white"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/white"
+                app:backgroundTint="@color/black"
+                android:fontFamily="@font/oswald_bold"
+                app:cornerRadius="8dp"/>
+
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

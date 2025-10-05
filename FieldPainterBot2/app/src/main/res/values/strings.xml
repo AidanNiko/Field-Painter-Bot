@@ -7,8 +7,15 @@
     <string name="hp_buttontext">Launch</string>
     <string name="db_title">Dashboard</string>
     <string name="battery_percent">%1$d%%</string>
-
-
+    <string name="pf_title">Select a Field</string>
+    <string name="pf_Start">Start</string>
+    <string name="pf_Back">Back</string>
+    <string name="pf_Baseball_Text">Baseball</string>
+    <string name="pf_Soccer_Text">Soccer</string>
+    <string name="pf_Tennis_Text">Tennis</string>
+    <string name="pf_Basketball_Text">Basketball</string>
+    <string name="pf_Hockey_text">Hockey</string>
+    <string name="pf_Rugby_Text">Rugby</string>
 
 
 </resources>
