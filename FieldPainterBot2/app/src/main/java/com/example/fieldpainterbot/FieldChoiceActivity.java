@@ -3,6 +3,7 @@ package com.example.fieldpainterbot;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
@@ -52,41 +53,35 @@ public class FieldChoiceActivity extends AppCompatActivity {
     private void handleCardClick(MaterialCardView clickedCard) {
         if (clickedCard == null) return;
 
-        try {
-            // Reset previously selected card (if different)
-            if (selectedCard != null && selectedCard != clickedCard) {
-                selectedCard.setStrokeColor(Color.parseColor("#FFFFFF")); // white border reset
-            }
+        // Reset previously selected card (if different)
+        if (selectedCard != null && selectedCard != clickedCard) {
+            selectedCard.setStrokeColor(Color.parseColor("#FFFFFF")); // white border reset
+        }
 
-            // Highlight the clicked one
-            clickedCard.setStrokeColor(Color.parseColor("#2196F3")); // blue border highlight
+        // Highlight the clicked one
+        clickedCard.setStrokeColor(Color.parseColor("#2196F3")); // blue border highlight
 
-            // Update the selected card reference
-            selectedCard = clickedCard;
+        // Update the selected card reference
+        selectedCard = clickedCard;
 
-            // Update selected field string
-            int id = clickedCard.getId();
-            if (id == R.id.card_soccer) {
-                selectedField = "soccer";
-            } else if (id == R.id.card_baseball) {
-                selectedField = "baseball";
-            } else if (id == R.id.card_tennis) {
-                selectedField = "tennis";
-            } else if (id == R.id.card_basketball) {
-                selectedField = "basketball";
-            } else if (id == R.id.card_hockey) {
-                selectedField = "hockey";
-            } else if (id == R.id.card_rugby) {
-                selectedField = "rugby";
-            } else {
-                selectedField = "";
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        // Update selected field string
+        int id = clickedCard.getId();
+        if (id == R.id.card_soccer) {
+            selectedField = "soccer";
+        } else if (id == R.id.card_baseball) {
+            selectedField = "baseball";
+        } else if (id == R.id.card_tennis) {
+            selectedField = "tennis";
+        } else if (id == R.id.card_basketball) {
+            selectedField = "basketball";
+        } else if (id == R.id.card_hockey) {
+            selectedField = "hockey";
+        } else if (id == R.id.card_rugby) {
+            selectedField = "rugby";
+        } else {
+            selectedField = "";
         }
     }
-
 
 
 }
