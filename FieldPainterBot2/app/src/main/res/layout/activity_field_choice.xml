@@ -4,7 +4,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="16dp"
-        android:background="@drawable/genericbg">
+        android:background="@drawable/genericbg_2">
 
     <LinearLayout
         android:id="@+id/titleLayout"
@@ -15,7 +15,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="20dp">
+        android:layout_marginTop="50dp">
 
         <TextView
             android:id="@+id/PickFieldTitle"

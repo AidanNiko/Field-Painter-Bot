@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/dashboardbg">
+    android:background="@drawable/genericbg">
 
     <LinearLayout
         android:id="@+id/header"
@@ -73,41 +73,94 @@
         android:padding="16dp"
         app:layout_constraintTop_toBottomOf="@id/header">
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/header_clickable_1"
-            android:layout_width="match_parent"
-            android:layout_height="203dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            app:cardCornerRadius="12dp"
-            app:strokeColor="#DDDDDD"
-            app:strokeWidth="1dp">
-
-            <ImageView
+            <!-- First Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/header_clickable_1"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:contentDescription="TODO" />
-        </com.google.android.material.card.MaterialCardView>
+                android:layout_height="203dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardCornerRadius="12dp"
+                app:strokeColor="#DDDDDD"
+                app:strokeWidth="1dp">
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/header_clickable_2"
-            android:layout_marginTop="50dp"
-            android:layout_width="match_parent"
-            android:layout_height="203dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            app:cardCornerRadius="12dp"
-            app:strokeColor="#DDDDDD"
-            app:strokeWidth="1dp">
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-            <ImageView
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/container1"
+                        android:contentDescription="TODO" />
+
+                    <!-- Footer overlay -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:layout_gravity="bottom"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/footer_text_1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Card 1"
+                            android:textColor="@color/white"
+                            android:textStyle="bold"
+                            android:textSize="18sp"/>
+                    </LinearLayout>
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Second Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/header_clickable_2"
+                android:layout_marginTop="50dp"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:contentDescription="TODO" />
-        </com.google.android.material.card.MaterialCardView>
-    </LinearLayout>
+                android:layout_height="203dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardCornerRadius="12dp"
+                app:strokeColor="#DDDDDD"
+                app:strokeWidth="1dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/container2"
+                        android:contentDescription="TODO" />
+
+                    <!-- Footer overlay -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:layout_gravity="bottom"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/footer_text_2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Card 2"
+                            android:textColor="@color/white"
+                            android:textStyle="bold"
+                            android:textSize="18sp"/>
+                    </LinearLayout>
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

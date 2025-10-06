@@ -46,21 +46,18 @@ public class DashboardActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Find the two clickable MaterialCards
         MaterialCardView card1 = findViewById(R.id.header_clickable_1);
         MaterialCardView card2 = findViewById(R.id.header_clickable_2);
 
-        // Card 1 navigates to PageOneActivity
         card1.setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, FieldChoiceActivity.class);
             startActivity(intent);
         });
-
-        // Card 2 navigates to PageTwoActivity
         card2.setOnClickListener(v -> {
-            Intent intent = new Intent(DashboardActivity.this, DashboardActivity.class);
+            Intent intent = new Intent(DashboardActivity.this, ConnectionActivity.class);
             startActivity(intent);
         });
+
 
     }
 }
