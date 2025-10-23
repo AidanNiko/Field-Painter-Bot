@@ -102,13 +102,14 @@
                         android:layout_height="60dp"
                         android:layout_gravity="bottom"
                         android:gravity="center"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:background="#80000000">
 
                         <TextView
                             android:id="@+id/footer_text_1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Card 1"
+                            android:text="Presets"
                             android:textColor="@color/white"
                             android:textStyle="bold"
                             android:textSize="18sp"/>
@@ -138,7 +139,8 @@
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
                         android:src="@drawable/container2"
-                        android:contentDescription="TODO" />
+                        android:contentDescription="TODO"
+                        />
 
                     <!-- Footer overlay -->
                     <LinearLayout
@@ -146,13 +148,14 @@
                         android:layout_height="60dp"
                         android:layout_gravity="bottom"
                         android:gravity="center"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:background="#80000000">
 
                         <TextView
                             android:id="@+id/footer_text_2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Card 2"
+                            android:text="Manual"
                             android:textColor="@color/white"
                             android:textStyle="bold"
                             android:textSize="18sp"/>
