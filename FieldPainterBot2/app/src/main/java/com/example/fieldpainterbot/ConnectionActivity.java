@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fieldpainterbot.DeviceAdapter;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.Objects;
 public class ConnectionActivity extends AppCompatActivity {
@@ -28,9 +29,9 @@ public class ConnectionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_connection);
 
         //Handle skip button to proceed without connecting a device
-        Button skipButton = findViewById(R.id.skipButton);
+        MaterialButton skipButton = findViewById(R.id.skipped);
         skipButton.setOnClickListener(v -> {
-            Intent intent = new Intent(ConnectionActivity.this, FieldChoiceActivity.class);
+            Intent intent = new Intent(ConnectionActivity.this, DashboardActivity.class);
             startActivity(intent); // Navigate to FieldChoiceActivity
         });
 
@@ -74,9 +75,7 @@ public class ConnectionActivity extends AppCompatActivity {
         // Add visual divider between items in the list
         DividerItemDecoration divider = new DividerItemDecoration(
                 recyclerView.getContext(), LinearLayoutManager.VERTICAL);
-        divider.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(this, R.drawable.divider)));
         recyclerView.addItemDecoration(divider);
-
 
         // Observe changes in the list of discovered devices and update UI
         viewModel.getDevices().observe(this, adapter::submitList);
@@ -94,6 +93,7 @@ public class ConnectionActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        boolean allGranted = true;
         if (allGranted) {
             viewModel.startDiscovery(this); // permission granted, start discovery
         } else {

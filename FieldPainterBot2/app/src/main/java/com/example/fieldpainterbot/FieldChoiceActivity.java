@@ -21,6 +21,13 @@ public class FieldChoiceActivity extends AppCompatActivity {
         // set up click handling for cards
         setupCardClicks();
 
+        // start button to go back to dashboard
+        MaterialButton startbutton = findViewById(R.id.BeginProcess);
+        startbutton.setOnClickListener(v -> {
+            Intent intent = new Intent(FieldChoiceActivity.this, PaintingActivity.class);
+            startActivity(intent);
+        });
+
         // back button to go back to dashboard
         MaterialButton backbutton = findViewById(R.id.BackDshB);
         backbutton.setOnClickListener(v -> {

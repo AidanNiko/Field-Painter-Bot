@@ -16,6 +16,6 @@
     <string name="pf_Basketball_Text">Basketball</string>
     <string name="pf_Hockey_text">Hockey</string>
     <string name="pf_Rugby_Text">Rugby</string>
-
+    <string name="ac_NearbyDevice_Text">Nearby Devices</string>
 
 </resources>
