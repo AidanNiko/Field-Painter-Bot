@@ -27,6 +27,7 @@
         <activity android:name=".ConnectionActivity" />
         <activity android:name=".FieldChoiceActivity" />
         <activity android:name=".DashboardActivity"/>
+        <activity android:name=".ManualControlActivity"/>
 
 
         <activity

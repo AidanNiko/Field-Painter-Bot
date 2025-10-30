@@ -54,7 +54,7 @@ public class DashboardActivity extends AppCompatActivity {
             startActivity(intent);
         });
         card2.setOnClickListener(v -> {
-            Intent intent = new Intent(DashboardActivity.this, ConnectionActivity.class);
+            Intent intent = new Intent(DashboardActivity.this, ManualControlActivity.class);
             startActivity(intent);
         });
 

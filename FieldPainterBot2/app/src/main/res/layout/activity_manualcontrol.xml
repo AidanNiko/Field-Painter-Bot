@@ -85,8 +85,8 @@
         <!-- Up -->
         <ImageView
             android:id="@+id/btnForward"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
             android:background="@drawable/triangle_up_rounded"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -97,8 +97,8 @@
         <!-- Left -->
         <ImageView
             android:id="@+id/btnLeft"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
             android:background="@drawable/triangle_left_rounded"
             app:layout_constraintTop_toBottomOf="@id/btnForward"
             app:layout_constraintBottom_toTopOf="@id/btnBack"
@@ -108,8 +108,8 @@
         <!-- Right -->
         <ImageView
             android:id="@+id/btnRight"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
             android:background="@drawable/triangle_right_rounded"
             app:layout_constraintTop_toBottomOf="@id/btnForward"
             app:layout_constraintBottom_toTopOf="@id/btnBack"
@@ -119,8 +119,8 @@
         <!-- Down -->
         <ImageView
             android:id="@+id/btnBack"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
             android:background="@drawable/triangle_down_rounded"
             app:layout_constraintTop_toBottomOf="@id/btnLeft"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -184,40 +184,13 @@
             android:layout_weight="1"
             android:paddingEnd="8dp">
 
-            <!-- Spray level -->
+            <!-- Battery level -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_marginEnd="16dp">
-
-                <TextView
-                    android:id="@+id/spraylevel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/battery_percent"
-                    android:textSize="15sp"
-                    android:fontFamily="@font/oswald_bold"
-                    android:textColor="@color/white"
-                    android:layout_marginEnd="2dp"/>
-
-                <ImageView
-                    android:id="@+id/spray_icon"
-                    android:layout_width="55dp"
-                    android:layout_height="45dp"
-                    android:adjustViewBounds="true"
-                    android:scaleType="fitStart"
-                    app:tint="@android:color/white"
-                    android:src="@drawable/battery_0"/>
-            </LinearLayout>
-
-            <!-- Battery level -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
 
                 <TextView
                     android:id="@+id/percentLevel"
@@ -231,6 +204,32 @@
 
                 <ImageView
                     android:id="@+id/battery_icon"
+                    android:layout_width="55dp"
+                    android:layout_height="45dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitStart"
+                    android:src="@drawable/battery_0"/>
+            </LinearLayout>
+
+            <!-- Spray level -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/sprayLevel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/battery_percent"
+                    android:textSize="15sp"
+                    android:fontFamily="@font/oswald_bold"
+                    android:textColor="@color/white"
+                    android:layout_marginEnd="2dp"/>
+
+                <ImageView
+                    android:id="@+id/spray_icon"
                     android:layout_width="55dp"
                     android:layout_height="60dp"
                     android:adjustViewBounds="true"
