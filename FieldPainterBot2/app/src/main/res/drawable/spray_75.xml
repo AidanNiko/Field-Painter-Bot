@@ -1,0 +1,35 @@
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Spray can body -->
+    <path
+        android:fillColor="#B0BEC5"
+        android:pathData="M16,14 h16 v24 h-16 z" />
+
+    <!-- Spray level 75% -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M17.5,19 h13 v18 h-13 z" />
+
+    <!-- Spray can nozzle -->
+    <path
+        android:fillColor="#78909C"
+        android:pathData="M20,10 h8 v4 h-8 z" />
+
+    <!-- Spray button -->
+    <path
+        android:fillColor="#455A64"
+        android:pathData="M22,6 h4 v4 h-4 z" />
+
+    <!-- Spray dots -->
+    <path
+        android:fillColor="#90A4AE"
+        android:pathData="M36,12 m0,0 l4,-2 m-4,4 l6,-1 m-6,4 l5,1 m-5,4 l4,2"
+        android:strokeWidth="1"
+        android:strokeColor="#90A4AE"
+        android:strokeLineCap="round" />
+</vector>

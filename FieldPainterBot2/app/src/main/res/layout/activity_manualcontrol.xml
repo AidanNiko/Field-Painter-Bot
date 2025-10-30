@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/genericbg">
+
+    <!-- Header 50/50 -->
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Movement section -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/movementLabel"
+                android:text="Movement"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/oswald_bold"
+                android:textSize="28sp"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/infoMovement"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="5dp"
+                android:layout_marginStart="8dp"
+                android:src="@android:drawable/ic_dialog_info"
+                android:contentDescription="Movement info" />
+        </LinearLayout>
+
+        <!-- Spray section -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/sprayLabel"
+                android:text="Spray"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/oswald_bold"
+                android:textSize="28sp"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/infoSpray"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="5dp"
+                android:layout_marginStart="8dp"
+                android:src="@android:drawable/ic_dialog_info"
+                android:contentDescription="Spray info" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/directionControls"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintWidth_percent="0.5">
+
+        <!-- Up -->
+        <ImageView
+            android:id="@+id/btnForward"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@drawable/triangle_up_rounded"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/btnLeft"
+            app:layout_constraintVertical_chainStyle="packed" />
+
+        <!-- Left -->
+        <ImageView
+            android:id="@+id/btnLeft"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@drawable/triangle_left_rounded"
+            app:layout_constraintTop_toBottomOf="@id/btnForward"
+            app:layout_constraintBottom_toTopOf="@id/btnBack"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnRight" />
+
+        <!-- Right -->
+        <ImageView
+            android:id="@+id/btnRight"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@drawable/triangle_right_rounded"
+            app:layout_constraintTop_toBottomOf="@id/btnForward"
+            app:layout_constraintBottom_toTopOf="@id/btnBack"
+            app:layout_constraintStart_toEndOf="@id/btnLeft"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Down -->
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@drawable/triangle_down_rounded"
+            app:layout_constraintTop_toBottomOf="@id/btnLeft"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@id/btnLeft"
+            app:layout_constraintEnd_toEndOf="@id/btnRight" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <!-- Spray 50% -->
+    <LinearLayout
+        android:id="@+id/sprayArea"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="16dp"
+        app:layout_constraintStart_toEndOf="@id/directionControls"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/directionControls"
+        app:layout_constraintBottom_toBottomOf="@id/directionControls">
+
+        <ImageView
+            android:id="@+id/sprayButton"
+            android:layout_width="175dp"
+            android:layout_height="175dp"
+            android:background="@drawable/circle_button"
+            android:tooltipText="Double-tap to toggle auto spray" />
+    </LinearLayout>
+
+    <!-- Footer -->
+    <LinearLayout
+        android:id="@+id/footer"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:background="#4D000000"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Back button on left -->
+        <ImageView
+            android:id="@+id/footerBack"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:src="@drawable/back_button"
+            android:contentDescription="Back"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackground"/>
+
+        <!-- Right-side info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical|end"
+            android:layout_weight="1"
+            android:paddingEnd="8dp">
+
+            <!-- Spray level -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginEnd="16dp">
+
+                <TextView
+                    android:id="@+id/spraylevel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/battery_percent"
+                    android:textSize="15sp"
+                    android:fontFamily="@font/oswald_bold"
+                    android:textColor="@color/white"
+                    android:layout_marginEnd="2dp"/>
+
+                <ImageView
+                    android:id="@+id/spray_icon"
+                    android:layout_width="55dp"
+                    android:layout_height="45dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitStart"
+                    app:tint="@android:color/white"
+                    android:src="@drawable/battery_0"/>
+            </LinearLayout>
+
+            <!-- Battery level -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/percentLevel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/battery_percent"
+                    android:textSize="15sp"
+                    android:fontFamily="@font/oswald_bold"
+                    android:textColor="@color/white"
+                    android:layout_marginEnd="2dp"/>
+
+                <ImageView
+                    android:id="@+id/battery_icon"
+                    android:layout_width="55dp"
+                    android:layout_height="60dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitStart"
+                    android:src="@drawable/spray_100"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
