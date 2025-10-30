@@ -35,6 +35,27 @@ public class ManualControlActivity extends AppCompatActivity {
             batteryIcon.setImageResource(R.drawable.battery_0);
         }
 
+        //Will change once db class is made with a get method
+        int sprayPercentLevel = 75;
+        ImageView sprayIcon = findViewById(R.id.spray_icon);
+
+        //Set the text for battery level
+        TextView sprayLevel = findViewById(R.id.sprayLevel);
+        sprayLevel.setText(getString(R.string.battery_percent, sprayPercentLevel));
+
+        //Determine what the image should look like depending on battery level
+        if (sprayPercentLevel >= 80) {
+            sprayIcon.setImageResource(R.drawable.spray_100);
+        } else if (sprayPercentLevel >= 60) {
+            sprayIcon.setImageResource(R.drawable.spray_75);
+        } else if (sprayPercentLevel >= 40) {
+            sprayIcon.setImageResource(R.drawable.spray_50);
+        } else if (sprayPercentLevel >= 20) {
+            sprayIcon.setImageResource(R.drawable.spray_25);
+        } else {
+            sprayIcon.setImageResource(R.drawable.spray_0);
+        }
+
 
 
     }
