@@ -39,7 +39,16 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         BluetoothDevice device = devices.get(position);
-        String name = device.getName();
+        String name;
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S &&
+                holder.itemView.getContext().checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+                        != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            name = "Permission Required";
+        } else {
+            name = device.getName();
+        }
+
         holder.textView.setText(name != null ? name : "Unnamed Device");
         holder.itemView.setOnClickListener(v -> onClick.onDeviceClick(device));
     }

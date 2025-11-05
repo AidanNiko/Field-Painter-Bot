@@ -15,28 +15,53 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.bluetooth.BluetoothAdapter;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
-import com.example.fieldpainterbot.DeviceAdapter;
-import com.google.android.material.button.MaterialButton;
+import com.example.fieldpainting.DeviceAdapter;
 
 import java.util.Objects;
 public class ConnectionActivity extends AppCompatActivity {
     private ConnectionViewModel viewModel;
+
+    //handles enabling of bluetooth
+    private final ActivityResultLauncher<Intent> enableBluetoothLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    Toast.makeText(this, "Bluetooth enabled", Toast.LENGTH_SHORT).show();
+                    viewModel.startDiscovery(this);
+                } else {
+                    Toast.makeText(this, "Bluetooth is required to discover devices", Toast.LENGTH_LONG).show();
+                }
+            });
+    private static final int REQUEST_ENABLE_BT = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connection);
 
+
         //Handle skip button to proceed without connecting a device
-        MaterialButton skipButton = findViewById(R.id.skipped);
+        Button skipButton = findViewById(R.id.skipped);
         skipButton.setOnClickListener(v -> {
-            Intent intent = new Intent(ConnectionActivity.this, DashboardActivity.class);
+            Intent intent = new Intent(ConnectionActivity.this, FieldChoiceActivity.class);
             startActivity(intent); // Navigate to FieldChoiceActivity
         });
 
         // Initialize the viewmodel for managing bluetooth logic
         viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
+
+        //check if bluetooth is enable on device
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null) {
+            Toast.makeText(this, "Bluetooth not supported on this device", Toast.LENGTH_SHORT).show();
+            return;
+        } else if (!bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            enableBluetoothLauncher.launch(enableBtIntent);
+        }
 
         // Check and request necessary permissions based on android version
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -77,6 +102,7 @@ public class ConnectionActivity extends AppCompatActivity {
                 recyclerView.getContext(), LinearLayoutManager.VERTICAL);
         recyclerView.addItemDecoration(divider);
 
+
         // Observe changes in the list of discovered devices and update UI
         viewModel.getDevices().observe(this, adapter::submitList);
         // Observe connection status and navigate to the next screen if connected
@@ -86,14 +112,27 @@ public class ConnectionActivity extends AppCompatActivity {
             }
         });
 
+
+
     }
+
+
     // Callback for handling permission request results.
     // If all permissions are granted, start Bluetooth discovery.
     // Otherwise, show a warning toast.
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
         boolean allGranted = true;
+        for (int result : grantResults) {
+            if (result != PackageManager.PERMISSION_GRANTED) {
+                allGranted = false;
+                break;
+            }
+        }
+
         if (allGranted) {
             viewModel.startDiscovery(this); // permission granted, start discovery
         } else {
