@@ -1,7 +1,10 @@
 package com.example.fieldpainterbot;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -17,10 +20,14 @@ public class ManualControlActivity extends AppCompatActivity {
         setContentView(R.layout.activity_manualcontrol);
 
 
+        //Tool Tips
         ImageView movementToolTip = findViewById(R.id.infoMovement);
 
         movementToolTip.setOnClickListener(v -> {
-            // Create a view for your popup text
+            // Change tint to indicate click
+            movementToolTip.setColorFilter(Color.parseColor("#80FFFFFF")); // 50% white tint
+
+            // Create popup text
             TextView popupText = new TextView(this);
             popupText.setText("The D-Pad below provides direction of the rover.");
             popupText.setBackgroundColor(Color.parseColor("#CC000000"));
@@ -28,38 +35,55 @@ public class ManualControlActivity extends AppCompatActivity {
             popupText.setPadding(20, 10, 20, 10);
             popupText.setTextSize(12);
 
-            // Create the popup
             PopupWindow popupWindow = new PopupWindow(popupText,
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     true);
 
-            // Show below the icon with a small offset
-            popupWindow.showAsDropDown(movementToolTip, 0, -movementToolTip.getHeight()/8);
+            // Restore tint when popup dismisses
+            popupWindow.setOnDismissListener(movementToolTip::clearColorFilter);
+
+            // Show popup below the icon
+            popupWindow.showAsDropDown(movementToolTip, 0, -movementToolTip.getHeight() / 8);
         });
+
 
         ImageView sprayInfo = findViewById(R.id.infoSpray);
 
         sprayInfo.setOnClickListener(v -> {
-            // Create a view for your popup text
+            sprayInfo.setColorFilter(Color.parseColor("#80FFFFFF"));
+
             TextView popupText = new TextView(this);
-            popupText.setText("This button on hold begins to spray the paint, double tab for automatic.");
+            popupText.setText("This button on hold begins to spray the paint, double tap for automatic.");
             popupText.setBackgroundColor(Color.parseColor("#CC000000"));
             popupText.setTextColor(Color.WHITE);
             popupText.setPadding(20, 10, 20, 10);
             popupText.setTextSize(12);
 
-            // Create the popup
             PopupWindow popupWindow = new PopupWindow(popupText,
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     true);
 
-            // Show below the icon with a small offset
-            popupWindow.showAsDropDown(sprayInfo, 0, -sprayInfo.getHeight()/8);
+            popupWindow.setOnDismissListener(sprayInfo::clearColorFilter);
+            popupWindow.showAsDropDown(sprayInfo, 0, -sprayInfo.getHeight() / 8);
         });
 
 
+        //Back Button
+        ImageView FooterBack = findViewById(R.id.footerBack);
+
+        FooterBack.setOnClickListener(v -> {
+            // Apply visual feedback tint
+            FooterBack.setColorFilter(Color.parseColor("#80FFFFFF")); // semi-white highlight
+
+            // Delay navigation slightly to show click feedback
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                FooterBack.clearColorFilter(); // remove tint before navigating
+                Intent intent = new Intent(ManualControlActivity.this, DashboardActivity.class);
+                startActivity(intent);
+            }, 150); // short delay (150ms)
+        });
 
 
         //Will change once db class is made with a get method

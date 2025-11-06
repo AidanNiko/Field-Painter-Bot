@@ -33,7 +33,7 @@ public class ConnectionViewModel extends AndroidViewModel {
         bluetoothService.startDiscovery(context);
     }
 
-    public void connectToDevice(BluetoothDevice device) {
-        bluetoothService.connect(device);
+    public void connectToDevice(Context context, BluetoothDevice device) {
+        bluetoothService.connect(context, device);
     }
 }

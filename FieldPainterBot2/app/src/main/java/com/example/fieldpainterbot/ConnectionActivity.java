@@ -19,7 +19,7 @@ import android.bluetooth.BluetoothAdapter;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
-import com.example.fieldpainting.DeviceAdapter;
+import com.example.fieldpainterbot.DeviceAdapter;
 
 import java.util.Objects;
 public class ConnectionActivity extends AppCompatActivity {
@@ -46,7 +46,7 @@ public class ConnectionActivity extends AppCompatActivity {
         //Handle skip button to proceed without connecting a device
         Button skipButton = findViewById(R.id.skipped);
         skipButton.setOnClickListener(v -> {
-            Intent intent = new Intent(ConnectionActivity.this, FieldChoiceActivity.class);
+            Intent intent = new Intent(ConnectionActivity.this, DashboardActivity.class);
             startActivity(intent); // Navigate to FieldChoiceActivity
         });
 
@@ -93,7 +93,7 @@ public class ConnectionActivity extends AppCompatActivity {
 
         // Setup RecyclerView to display discovered Bluetooth devices
         RecyclerView recyclerView = findViewById(R.id.deviceList);
-        DeviceAdapter adapter = new DeviceAdapter(device -> viewModel.connectToDevice(device));
+        DeviceAdapter adapter = new DeviceAdapter(device -> viewModel.connectToDevice(getApplicationContext(),device));
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
