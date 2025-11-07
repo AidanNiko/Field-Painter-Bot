@@ -23,7 +23,7 @@ public class FieldDatabaseConnection {
     }
 
     public void fetchData(String FieldName, DataCallback callback) {
-        String url = "https://your-backend.onrender.com/FieldData?collection_name=" + FieldName;
+        String url = "https://field-painter-bot.onrender.com/FieldData?collection_name=" + FieldName;
 
         Request request = new Request.Builder()
                 .url(url)
