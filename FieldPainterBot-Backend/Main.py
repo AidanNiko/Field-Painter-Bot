@@ -9,8 +9,19 @@ app = FastAPI()
 
 MONGO_URI = os.getenv("MONGO_URI")
 API_KEY = os.getenv("API_KEY")
-client = MongoClient(MONGO_URI)
-db = client.get_database("Fields")  # default database from URI
+
+import certifi
+
+client = MongoClient(MONGO_URI, tls=True, tlsCAFile=certifi.where())
+
+try:
+    client.admin.command("ping")
+    print("MongoDB connected successfully!")
+except Exception as e:
+    print("Connection failed:", e)
+
+
+db = client.get_database("Fields")  # specify your database name
 
 
 @app.get("/status")
@@ -40,3 +51,10 @@ def get_data(
     collection = db[collection_name]
     items = list(collection.find({}, {"_id": 0}))  # exclude _id field
     return {"items": items}
+
+
+# --- Main block to run locally ---
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("Main:app", host="127.0.0.1", port=8000, reload=True)
