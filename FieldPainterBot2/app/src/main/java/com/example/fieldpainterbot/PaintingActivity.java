@@ -72,10 +72,37 @@ public class PaintingActivity extends AppCompatActivity {
             }
         });
 
+        Button actionButton = findViewById(R.id.cancelButton);
+
+// Default behavior (Cancel → Dashboard)
+        Runnable defaultAction = () -> {
+            Intent intent = new Intent(PaintingActivity.this, DashboardActivity.class);
+            startActivity(intent);
+        };
+
+// Set initial behavior
+        actionButton.setOnClickListener(v -> defaultAction.run());
+
         viewModel.getProgressLevel().observe(this, level -> {
             if (level != null) {
                 progress.setProgress(level);
-                Log.d("Progress", "Spray updated: " + level);
+                Log.d("Progress", "Progress updated: " + level);
+
+                if (level >= 100) {
+                    // Show DONE state
+                    actionButton.setText("Done");
+
+                    // Change action to navigate to Finish page
+                    actionButton.setOnClickListener(v -> {
+                        Intent intent = new Intent(PaintingActivity.this, DashboardActivity.class);
+                        startActivity(intent);
+                    });
+
+                } else {
+                    // Restore CANCEL state
+                    actionButton.setText("Cancel");
+                    actionButton.setOnClickListener(v -> defaultAction.run());
+                }
             }
             else {
                 Log.d("Bluetooth", "Disconnected");
@@ -83,13 +110,6 @@ public class PaintingActivity extends AppCompatActivity {
             }
         });
 
-
-        // Cancel button
-        Button cancelButton = findViewById(R.id.cancelButton);
-        cancelButton.setOnClickListener(v -> {
-            Intent intent = new Intent(PaintingActivity.this, DashboardActivity.class);
-            startActivity(intent);
-        });
     }
     private void updateBatteryUI(int batteryLevel) {
         percentLevel.setText("Battery Remaining: "+batteryLevel + "%");

@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -21,12 +22,47 @@ public class FieldChoiceActivity extends AppCompatActivity {
         // set up click handling for cards
         setupCardClicks();
 
-        // start button to go back to dashboard
+
+
         MaterialButton startbutton = findViewById(R.id.BeginProcess);
+        ConnectionViewModel viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
+
         startbutton.setOnClickListener(v -> {
-            Intent intent = new Intent(FieldChoiceActivity.this, PaintingActivity.class);
-            startActivity(intent);
+
+            startbutton.setEnabled(false);
+            startbutton.setText("Sending");
+
+            ConnectionStatus status = viewModel.getConnectionStatus().getValue();
+
+            // ⚠️ If NOT connected → skip sending and go straight to painting
+            if (status != ConnectionStatus.CONNECTED) {
+
+                // Reset UI since we're not actually sending
+                startbutton.setEnabled(true);
+                startbutton.setText("Start");
+
+                // Continue to painting
+                Intent intent = new Intent(FieldChoiceActivity.this, PaintingActivity.class);
+                startActivity(intent);
+                return;
+            }
+
+            // ✅ Connected → send normally
+            viewModel.fetchFieldAndSend(
+                    selectedField,
+                    () -> {
+                        Intent intent = new Intent(FieldChoiceActivity.this, PaintingActivity.class);
+                        startActivity(intent);
+                    },
+                    () -> {
+                        startbutton.setEnabled(true);
+                        startbutton.setText("Start");
+                    }
+            );
         });
+
+
+
 
         // back button to go back to dashboard
         MaterialButton backbutton = findViewById(R.id.BackDshB);
@@ -34,6 +70,8 @@ public class FieldChoiceActivity extends AppCompatActivity {
             Intent intent = new Intent(FieldChoiceActivity.this, DashboardActivity.class);
             startActivity(intent);
         });
+
+
     }
 
     // keeps track of which card is selected

@@ -31,7 +31,7 @@ public class ConnectionActivity extends AppCompatActivity {
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK) {
                     Toast.makeText(this, "Bluetooth enabled", Toast.LENGTH_SHORT).show();
-                    viewModel.startDiscovery(this);
+                    viewModel.startDiscovery();
                 } else {
                     Toast.makeText(this, "Bluetooth is required to discover devices", Toast.LENGTH_LONG).show();
                 }
@@ -97,14 +97,14 @@ public class ConnectionActivity extends AppCompatActivity {
                                 Manifest.permission.ACCESS_FINE_LOCATION
                         }, 1);
             } else {
-                viewModel.startDiscovery(this);
+                viewModel.startDiscovery();
             }
         } else {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
             } else {
-                viewModel.startDiscovery(this);
+                viewModel.startDiscovery();
             }
         }
     }
@@ -115,7 +115,7 @@ public class ConnectionActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 1 && grantResults.length > 0 &&
                 grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            viewModel.startDiscovery(this);
+            viewModel.startDiscovery();
         } else {
             Toast.makeText(this, "Permissions denied. Cannot discover devices.", Toast.LENGTH_SHORT).show();
         }
