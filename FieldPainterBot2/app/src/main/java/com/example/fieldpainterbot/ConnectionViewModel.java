@@ -7,11 +7,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -142,6 +145,20 @@ public class ConnectionViewModel extends AndroidViewModel {
 
         });
     }
+
+    public void sendControlCommand(String command, String state) {
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("command", command);
+            obj.put("state", state);
+
+            bluetoothService.send(obj.toString(), () -> Log.d("SEND", "Sent: " + obj),
+                    () -> Log.e("SEND", "Failed to send: " + obj));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     /* -------------------------------------------------------
                       MAIN THREAD CALLBACK UTILITY
