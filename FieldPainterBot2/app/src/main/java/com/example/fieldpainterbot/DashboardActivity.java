@@ -33,6 +33,7 @@ public class DashboardActivity extends AppCompatActivity {
         ConnectionViewModel viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
 
         viewModel.getConnectionStatus().observe(this, status -> {
+            Log.d("UI", "Connection status changed: " + status);
             if (status == ConnectionStatus.DISCONNECTED) {
                 updateBatteryUI(70);
                 updateSprayUI(100);

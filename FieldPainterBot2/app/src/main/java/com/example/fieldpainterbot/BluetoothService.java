@@ -2,6 +2,7 @@ package com.example.fieldpainterbot;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.util.Log;
@@ -15,7 +16,9 @@ import java.util.UUID;
 public class BluetoothService {
 
     private static final String TAG = "BluetoothService";
-    private static final UUID APP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static final UUID APP_UUID =
+            UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static final String SERVICE_NAME = "FieldPainter";
 
     private static BluetoothService instance;
 
@@ -23,6 +26,7 @@ public class BluetoothService {
     private BluetoothIOThread ioThread;
     private BluetoothSendThread sendThread;
     private BluetoothSocket socket;
+    private BluetoothServerThread serverThread;
     private DataListener dataListener;
 
     private final MutableLiveData<List<BluetoothDevice>> devicesLiveData;
@@ -41,16 +45,13 @@ public class BluetoothService {
             MutableLiveData<List<BluetoothDevice>> devices,
             MutableLiveData<ConnectionStatus> connectionStatus
     ) {
-        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        if (adapter == null) {
-            Log.w(TAG, "Bluetooth NOT supported.");
-            return null;
-        }
-
         if (instance == null) {
-            instance = new BluetoothService(context.getApplicationContext(), devices, connectionStatus);
+            instance = new BluetoothService(
+                    context.getApplicationContext(),
+                    devices,
+                    connectionStatus
+            );
         }
-
         return instance;
     }
 
@@ -68,26 +69,22 @@ public class BluetoothService {
     }
 
     /* -------------------------------------------------------
-                          CONNECT
+                          CLIENT CONNECT
        ------------------------------------------------------- */
 
     public void connect(BluetoothDevice device) {
+        if (socket != null && socket.isConnected()) return;
+
+        connectionStatus.postValue(ConnectionStatus.CONNECTING);
+
         new Thread(() -> {
             try {
-                socket = device.createRfcommSocketToServiceRecord(APP_UUID);
                 bluetoothAdapter.cancelDiscovery();
-                socket.connect();
-
+                socket = device.createInsecureRfcommSocketToServiceRecord(APP_UUID);
+                socket.connect();  // <-- blocks until Pi accepts
                 connectionStatus.postValue(ConnectionStatus.CONNECTED);
-                Log.d(TAG, "Connected to " + device.getName());
 
-                // Start IO thread (receiving)
-                ioThread = new BluetoothIOThread(socket, dataListener);
-                ioThread.start();
-
-                // Start Send thread (queued sending)
-                sendThread = new BluetoothSendThread(socket);
-                sendThread.start();
+                startIOThreads(socket);
 
             } catch (IOException e) {
                 Log.e(TAG, "Connection failed", e);
@@ -95,6 +92,67 @@ public class BluetoothService {
                 closeSocket();
             }
         }).start();
+    }
+
+    /* -------------------------------------------------------
+                          SERVER MODE
+       ------------------------------------------------------- */
+
+    public void startServer() {
+        if (serverThread == null) {
+            serverThread = new BluetoothServerThread();
+            serverThread.start();
+        }
+    }
+
+    private class BluetoothServerThread extends Thread {
+        private final BluetoothServerSocket serverSocket;
+
+        public BluetoothServerThread() {
+            BluetoothServerSocket tmp = null;
+            try {
+                tmp = bluetoothAdapter.listenUsingRfcommWithServiceRecord(SERVICE_NAME, APP_UUID);
+            } catch (IOException e) {
+                Log.e(TAG, "Server socket creation failed", e);
+            }
+            serverSocket = tmp;
+            connectionStatus.postValue(ConnectionStatus.LISTENING);
+        }
+
+        @Override
+        public void run() {
+            BluetoothSocket clientSocket;
+            while (true) {
+                try {
+                    clientSocket = serverSocket.accept(); // blocks until a device connects
+                    if (clientSocket != null) {
+                        Log.d(TAG, "Device connected: " + clientSocket.getRemoteDevice().getName());
+                        socket = clientSocket;
+                        connectionStatus.postValue(ConnectionStatus.CONNECTED);
+                        startIOThreads(clientSocket);
+                    }
+                } catch (IOException e) {
+                    Log.e(TAG, "Accept failed", e);
+                    break;
+                }
+            }
+        }
+
+        public void cancel() {
+            try { serverSocket.close(); } catch (IOException ignored) {}
+        }
+    }
+
+    /* -------------------------------------------------------
+                          I/O THREADS
+       ------------------------------------------------------- */
+
+    private void startIOThreads(BluetoothSocket socket) throws IOException {
+        ioThread = new BluetoothIOThread(socket, dataListener);
+        ioThread.start();
+
+        sendThread = new BluetoothSendThread(socket);
+        sendThread.start();
     }
 
     /* -------------------------------------------------------
@@ -116,8 +174,6 @@ public class BluetoothService {
         }
     }
 
-
-
     /* -------------------------------------------------------
                         DISCONNECT
        ------------------------------------------------------- */
@@ -134,10 +190,14 @@ public class BluetoothService {
             sendThread = null;
         }
 
+        if (serverThread != null) {
+            serverThread.cancel();
+            serverThread = null;
+        }
+
         closeSocket();
 
         connectionStatus.postValue(ConnectionStatus.DISCONNECTED);
-
         Log.d(TAG, "Disconnected");
     }
 
@@ -165,4 +225,5 @@ public class BluetoothService {
         void onSprayLevelReceived(int level);
         void onProgressLevelReceived(int level);
     }
+
 }

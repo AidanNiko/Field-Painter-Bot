@@ -16,6 +16,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ConnectionViewModel extends AndroidViewModel {
@@ -28,88 +29,93 @@ public class ConnectionViewModel extends AndroidViewModel {
     private final MutableLiveData<Integer> progressLevel = new MutableLiveData<>();
 
     private final BluetoothService bluetoothService;
+    private final BluetoothAdapter bluetoothAdapter;
+    private final List<BluetoothDevice> discoveredDevices = new ArrayList<>();
 
-    /* -------------------------------------------------------
-                        CONSTRUCTOR
-       ------------------------------------------------------- */
     public ConnectionViewModel(@NonNull Application application) {
         super(application);
 
+        connectionStatus.setValue(ConnectionStatus.DISCONNECTED);
+
         bluetoothService = BluetoothService.getInstance(application, devices, connectionStatus);
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         if (bluetoothService != null) {
             bluetoothService.setDataListener(new BluetoothService.DataListener() {
                 @Override
-                public void onBatteryLevelReceived(int level) {
-                    batteryLevel.postValue(level);
-                }
+                public void onBatteryLevelReceived(int level) { batteryLevel.postValue(level); }
 
                 @Override
-                public void onSprayLevelReceived(int level) {
-                    sprayLevel.postValue(level);
-                }
+                public void onSprayLevelReceived(int level) { sprayLevel.postValue(level); }
 
                 @Override
-                public void onProgressLevelReceived(int level) {
-                    progressLevel.postValue(level);
-                }
+                public void onProgressLevelReceived(int level) { progressLevel.postValue(level); }
             });
         }
 
-        // Set initial connection status
-        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        if (adapter == null || !adapter.isEnabled()) {
-            connectionStatus.setValue(ConnectionStatus.DISCONNECTED);
-        } else {
-            connectionStatus.setValue(ConnectionStatus.DISCONNECTED);
-        }
-
-        // Listen to Bluetooth ON/OFF
-        application.registerReceiver(
-                new BluetoothStateReceiver(),
-                new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
-        );
+        // Register receivers
+        registerBluetoothStateReceiver(application);
+        registerDeviceDiscoveryReceiver(application);
     }
 
-    /* -------------------------------------------------------
-                    BLUETOOTH STATUS RECEIVER
-       ------------------------------------------------------- */
-    private class BluetoothStateReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (!BluetoothAdapter.ACTION_STATE_CHANGED.equals(intent.getAction())) return;
+    /* ------------------ STATE RECEIVER ------------------ */
+    private void registerBluetoothStateReceiver(Context context) {
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (!BluetoothAdapter.ACTION_STATE_CHANGED.equals(intent.getAction())) return;
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
 
-            int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-
-            switch (state) {
-                case BluetoothAdapter.STATE_OFF:
-                case BluetoothAdapter.STATE_TURNING_OFF:
-                    connectionStatus.postValue(ConnectionStatus.DISCONNECTED);
-                    break;
-
-                case BluetoothAdapter.STATE_ON:
-                case BluetoothAdapter.STATE_TURNING_ON:
-                    connectionStatus.postValue(ConnectionStatus.CONNECTED);
-                    break;
+                switch (state) {
+                    case BluetoothAdapter.STATE_OFF:
+                    case BluetoothAdapter.STATE_TURNING_OFF:
+                        connectionStatus.postValue(ConnectionStatus.DISCONNECTED);
+                        break;
+                    case BluetoothAdapter.STATE_ON:
+                        connectionStatus.postValue(ConnectionStatus.READY);
+                        startDiscovery(); // auto scan
+                        break;
+                }
             }
-        }
+        };
+        context.registerReceiver(receiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
     }
 
-    /* -------------------------------------------------------
-                        LIVE DATA GETTERS
-       ------------------------------------------------------- */
+    /* ------------------ DEVICE DISCOVERY ------------------ */
+    private void registerDeviceDiscoveryReceiver(Context context) {
+        BroadcastReceiver discoveryReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
+                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    // Only add devices with a name and not "Unnamed Device"
+                    if (device != null
+                            && device.getName() != null
+                            && !device.getName().equals("Unnamed Device")
+                            && !discoveredDevices.contains(device)) {
+                        discoveredDevices.add(device);
+                        devices.postValue(new ArrayList<>(discoveredDevices));
+                    }
+                }
+            }
+        };
+        context.registerReceiver(discoveryReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+    }
+
+
     public LiveData<List<BluetoothDevice>> getDevices() { return devices; }
     public LiveData<ConnectionStatus> getConnectionStatus() { return connectionStatus; }
-
     public LiveData<Integer> getBatteryLevel() { return batteryLevel; }
     public LiveData<Integer> getSprayLevel() { return sprayLevel; }
     public LiveData<Integer> getProgressLevel() { return progressLevel; }
 
-    /* -------------------------------------------------------
-                        BLUETOOTH ACTIONS
-       ------------------------------------------------------- */
     public void startDiscovery() {
-        if (bluetoothService != null) bluetoothService.startDiscovery();
+        if (bluetoothAdapter != null && bluetoothAdapter.isEnabled()) {
+            discoveredDevices.clear();
+            devices.postValue(new ArrayList<>());
+            bluetoothAdapter.startDiscovery();
+            Log.d("DISCOVERY", "Bluetooth discovery started");
+        }
     }
 
     public void connectToDevice(BluetoothDevice device) {
@@ -120,20 +126,21 @@ public class ConnectionViewModel extends AndroidViewModel {
         if (bluetoothService != null) bluetoothService.disconnect();
     }
 
-    /* -------------------------------------------------------
-                FETCH DATA FROM DATABASE + SEND
-       ------------------------------------------------------- */
-    public void fetchFieldAndSend(
-            String fieldName,
-            Runnable onComplete,
-            Runnable onError
-    ) {
+    /* ------------------ UTILITY ------------------ */
+    private void runOnMain(Runnable runnable) {
+        if (runnable == null) return;
+        android.os.Handler mainHandler = new android.os.Handler(getApplication().getMainLooper());
+        mainHandler.post(runnable);
+    }
+
+    public void fetchFieldAndSend(String fieldName, Runnable onComplete, Runnable onError) {
+
         FieldDatabaseConnection db = new FieldDatabaseConnection();
 
         db.fetchData(fieldName, data -> {
 
             if (bluetoothService == null) {
-                onError.run();
+                runOnMain(onError);
                 return;
             }
 
@@ -152,20 +159,14 @@ public class ConnectionViewModel extends AndroidViewModel {
             obj.put("command", command);
             obj.put("state", state);
 
-            bluetoothService.send(obj.toString(), () -> Log.d("SEND", "Sent: " + obj),
-                    () -> Log.e("SEND", "Failed to send: " + obj));
+            bluetoothService.send(
+                    obj.toString(),
+                    () -> Log.d("SEND", "Sent: " + obj),
+                    () -> Log.e("SEND", "Failed to send: " + obj)
+            );
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-
-    /* -------------------------------------------------------
-                      MAIN THREAD CALLBACK UTILITY
-       ------------------------------------------------------- */
-    private void runOnMain(Runnable runnable) {
-        if (runnable == null) return;
-        android.os.Handler mainHandler = new android.os.Handler(getApplication().getMainLooper());
-        mainHandler.post(runnable);
     }
 }

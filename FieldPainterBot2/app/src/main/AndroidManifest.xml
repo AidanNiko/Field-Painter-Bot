@@ -2,12 +2,30 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- New Android 12+ Bluetooth Permissions -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        android:required="false" />
+
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT"
+        android:required="false" />
+
+    <!-- Optional but good to add -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADVERTISE"
+        android:required="false" />
+
+    <!-- Legacy Bluetooth (older Android) -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
+    <!-- Location permission still required for discovery (Android <12) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <!-- Internet (for logs, backend, etc) -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -21,14 +39,11 @@
         android:theme="@style/Theme.FieldPainterBot"
         tools:targetApi="31">
 
-
-
         <activity android:name=".PaintingActivity" />
         <activity android:name=".ConnectionActivity" />
         <activity android:name=".FieldChoiceActivity" />
         <activity android:name=".DashboardActivity"/>
         <activity android:name=".ManualControlActivity"/>
-
 
         <activity
             android:name="com.example.fieldpainterbot.HomepageActivity"
