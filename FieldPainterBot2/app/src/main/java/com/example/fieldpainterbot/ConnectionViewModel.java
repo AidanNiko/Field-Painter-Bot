@@ -61,7 +61,7 @@ public class ConnectionViewModel extends AndroidViewModel {
         if (adapter == null || !adapter.isEnabled()) {
             connectionStatus.setValue(ConnectionStatus.DISCONNECTED);
         } else {
-            connectionStatus.setValue(ConnectionStatus.CONNECTED);
+            connectionStatus.setValue(ConnectionStatus.DISCONNECTED);
         }
 
         // Listen to Bluetooth ON/OFF
