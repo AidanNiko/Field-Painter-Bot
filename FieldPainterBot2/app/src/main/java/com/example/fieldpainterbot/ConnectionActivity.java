@@ -41,7 +41,7 @@ public class ConnectionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connection);
 
-        viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
+        viewModel = ConnectionViewModel.getInstance(getApplication());
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // No Bluetooth hardware
@@ -82,7 +82,7 @@ public class ConnectionActivity extends AppCompatActivity {
             Log.d("UI", "Connection status changed: " + status);
             if (status == ConnectionStatus.CONNECTED) {
                 Toast.makeText(this, "Connected!", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(this, FieldChoiceActivity.class));
+                startActivity(new Intent(this, DashboardActivity.class));
             }
         });
     }

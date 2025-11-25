@@ -32,8 +32,8 @@ public class PaintingActivity extends AppCompatActivity {
         AnimationDrawable anim = (AnimationDrawable) loadingAnimation.getDrawable(); // or getBackground()
         anim.start();
 
-        ConnectionViewModel viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
-
+        ConnectionViewModel viewModel = ConnectionViewModel.getInstance(getApplication());
+        
         viewModel.getConnectionStatus().observe(this, status -> {
             if (status == ConnectionStatus.DISCONNECTED) {
                 updateBatteryUI(70);

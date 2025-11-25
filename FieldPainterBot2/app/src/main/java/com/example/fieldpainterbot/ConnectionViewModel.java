@@ -21,9 +21,10 @@ import java.util.List;
 
 public class ConnectionViewModel extends AndroidViewModel {
 
+    private static ConnectionViewModel instance;
+
     private final MutableLiveData<List<BluetoothDevice>> devices = new MutableLiveData<>();
     private final MutableLiveData<ConnectionStatus> connectionStatus = new MutableLiveData<>();
-
     private final MutableLiveData<Integer> batteryLevel = new MutableLiveData<>();
     private final MutableLiveData<Integer> sprayLevel = new MutableLiveData<>();
     private final MutableLiveData<Integer> progressLevel = new MutableLiveData<>();
@@ -32,10 +33,8 @@ public class ConnectionViewModel extends AndroidViewModel {
     private final BluetoothAdapter bluetoothAdapter;
     private final List<BluetoothDevice> discoveredDevices = new ArrayList<>();
 
-    public ConnectionViewModel(@NonNull Application application) {
+    private ConnectionViewModel(@NonNull Application application) {
         super(application);
-
-        connectionStatus.setValue(ConnectionStatus.DISCONNECTED);
 
         bluetoothService = BluetoothService.getInstance(application, devices, connectionStatus);
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -44,18 +43,22 @@ public class ConnectionViewModel extends AndroidViewModel {
             bluetoothService.setDataListener(new BluetoothService.DataListener() {
                 @Override
                 public void onBatteryLevelReceived(int level) { batteryLevel.postValue(level); }
-
                 @Override
                 public void onSprayLevelReceived(int level) { sprayLevel.postValue(level); }
-
                 @Override
                 public void onProgressLevelReceived(int level) { progressLevel.postValue(level); }
             });
         }
 
-        // Register receivers
         registerBluetoothStateReceiver(application);
         registerDeviceDiscoveryReceiver(application);
+    }
+
+    public static synchronized ConnectionViewModel getInstance(@NonNull Application application) {
+        if (instance == null) {
+            instance = new ConnectionViewModel(application);
+        }
+        return instance;
     }
 
     /* ------------------ STATE RECEIVER ------------------ */

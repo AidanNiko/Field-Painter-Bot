@@ -25,7 +25,7 @@ public class FieldChoiceActivity extends AppCompatActivity {
 
 
         MaterialButton startbutton = findViewById(R.id.BeginProcess);
-        ConnectionViewModel viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
+        ConnectionViewModel viewModel = ConnectionViewModel.getInstance(getApplication());
 
         startbutton.setOnClickListener(v -> {
 

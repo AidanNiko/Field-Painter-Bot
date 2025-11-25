@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStoreOwner;
 
 import com.google.android.material.card.MaterialCardView;
 
@@ -30,10 +31,12 @@ public class DashboardActivity extends AppCompatActivity {
         ImageView bluetoothIcon = findViewById(R.id.bluetooth_icon);
 
         // Initialize ViewModel (shared Bluetooth logic)
-        ConnectionViewModel viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
+        ConnectionViewModel viewModel = ConnectionViewModel.getInstance(getApplication());
+
+
 
         viewModel.getConnectionStatus().observe(this, status -> {
-            Log.d("UI", "Connection status changed: " + status);
+            Log.d("Testing Dash", "Connection status changed Dashboard: " + status);
             if (status == ConnectionStatus.DISCONNECTED) {
                 updateBatteryUI(70);
                 updateSprayUI(100);

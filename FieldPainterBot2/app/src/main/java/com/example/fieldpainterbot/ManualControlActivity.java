@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStoreOwner;
 
 
 public class ManualControlActivity extends AppCompatActivity {
@@ -25,6 +26,8 @@ public class ManualControlActivity extends AppCompatActivity {
     private ImageView sprayIcon;
 
     private TextView percentSpray;
+
+    private ConnectionStatus cachedStatus = ConnectionStatus.DISCONNECTED;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +102,7 @@ public class ManualControlActivity extends AppCompatActivity {
 
 
         // Initialize ViewModel (shared Bluetooth logic)
-        ConnectionViewModel viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
+        ConnectionViewModel viewModel = ConnectionViewModel.getInstance(getApplication());
 
 
         viewModel.getConnectionStatus().observe(this, status -> {
@@ -146,6 +149,11 @@ public class ManualControlActivity extends AppCompatActivity {
 
 
 
+        viewModel.getConnectionStatus().observe(this, status -> {
+            cachedStatus = status;
+        });
+
+
 
         //For manual control
         ClickableImageView ForwardBtn = findViewById(R.id.btnForward);
@@ -171,29 +179,26 @@ public class ManualControlActivity extends AppCompatActivity {
         View.OnTouchListener controlTouch = (v, event) -> {
 
             // --- 1) Check Bluetooth connection FIRST ---
-            if (viewModel.getConnectionStatus().getValue() != ConnectionStatus.CONNECTED) {
+            Log.d("Test manual", "Status: "+cachedStatus);
+            if (cachedStatus != ConnectionStatus.CONNECTED) {
                 Toast.makeText(this, "Not connected to robot", Toast.LENGTH_SHORT).show();
                 return false; // ignore touch
             }
 
             // --- 2) Determine which command to send ---
             String cmd = "";
-
             if (v.getId() == R.id.btnForward) cmd = "FORWARD";
-            if (v.getId() == R.id.btnBack)    cmd = "BACK";
-            if (v.getId() == R.id.btnLeft)    cmd = "LEFT";
-            if (v.getId() == R.id.btnRight)   cmd = "RIGHT";
-            if (v.getId() == R.id.sprayButton) cmd = "SPRAY";
+            else if (v.getId() == R.id.btnBack) cmd = "BACK";
+            else if (v.getId() == R.id.btnLeft) cmd = "LEFT";
+            else if (v.getId() == R.id.btnRight) cmd = "RIGHT";
+            else if (v.getId() == R.id.sprayButton) cmd = "SPRAY";
 
             if (cmd.isEmpty()) return false;
-
 
             // --- 3) Handle press + release events ---
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 viewModel.sendControlCommand(cmd, "pressed");
-            }
-
-            if (event.getAction() == MotionEvent.ACTION_UP ||
+            } else if (event.getAction() == MotionEvent.ACTION_UP ||
                     event.getAction() == MotionEvent.ACTION_CANCEL) {
 
                 v.performClick(); // safe - custom view overrides performClick()
@@ -202,6 +207,7 @@ public class ManualControlActivity extends AppCompatActivity {
 
             return true;
         };
+
 
 
         ForwardBtn.setOnTouchListener(controlTouch);

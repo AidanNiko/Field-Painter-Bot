@@ -82,8 +82,10 @@ public class BluetoothService {
                 bluetoothAdapter.cancelDiscovery();
                 socket = device.createInsecureRfcommSocketToServiceRecord(APP_UUID);
                 socket.connect();  // <-- blocks until Pi accepts
-                connectionStatus.postValue(ConnectionStatus.CONNECTED);
+                Log.e(TAG, "Connected");
 
+                connectionStatus.postValue(ConnectionStatus.CONNECTED);
+                Log.e(TAG, "Connected is included to status");
                 startIOThreads(socket);
 
             } catch (IOException e) {
@@ -173,6 +175,10 @@ public class BluetoothService {
             onError.run();
         }
     }
+
+
+
+
 
     /* -------------------------------------------------------
                         DISCONNECT
