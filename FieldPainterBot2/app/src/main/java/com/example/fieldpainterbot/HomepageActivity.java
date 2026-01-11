@@ -14,6 +14,10 @@ public class HomepageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_homepage); // Your layout XML file
 
+
+        FieldDatabaseConnection db = new FieldDatabaseConnection();
+        db.wakeServer();
+
         Button button = findViewById(R.id.button_start);
         button.setOnClickListener(new View.OnClickListener() {
             @Override

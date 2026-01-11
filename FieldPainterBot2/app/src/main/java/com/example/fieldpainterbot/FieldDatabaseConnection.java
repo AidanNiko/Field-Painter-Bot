@@ -48,6 +48,28 @@ public class FieldDatabaseConnection {
         });
     }
 
+    public void wakeServer() {
+        String url = "https://field-painter-bot.onrender.com/status";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Log.e("WakeServer", "Failed to wake backend", e);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
+                Log.d("WakeServer", "Backend awake: " + response.code());
+            }
+        });
+    }
+
+
     // Simple callback interface
     public interface DataCallback {
         void onDataReceived(String data);
