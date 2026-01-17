@@ -67,6 +67,15 @@ public class BluetoothService {
         }
     }
 
+    // used to stop discovery during refresh
+    public void stopDiscovery() {
+        if (bluetoothAdapter != null && bluetoothAdapter.isDiscovering()) {
+            bluetoothAdapter.cancelDiscovery();
+            Log.d(TAG, "Bluetooth discovery stopped");
+        }
+    }
+
+
     /* -------------------------------------------------------
                           CONNECT
        ------------------------------------------------------- */

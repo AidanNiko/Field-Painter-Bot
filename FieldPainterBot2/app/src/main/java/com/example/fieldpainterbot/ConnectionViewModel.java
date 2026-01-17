@@ -98,18 +98,36 @@ public class ConnectionViewModel extends AndroidViewModel {
     /* -------------------------------------------------------
                         LIVE DATA GETTERS
        ------------------------------------------------------- */
-    public LiveData<List<BluetoothDevice>> getDevices() { return devices; }
-    public LiveData<ConnectionStatus> getConnectionStatus() { return connectionStatus; }
+    public LiveData<List<BluetoothDevice>> getDevices() {
+        return devices;
+    }
 
-    public LiveData<Integer> getBatteryLevel() { return batteryLevel; }
-    public LiveData<Integer> getSprayLevel() { return sprayLevel; }
-    public LiveData<Integer> getProgressLevel() { return progressLevel; }
+    public LiveData<ConnectionStatus> getConnectionStatus() {
+        return connectionStatus;
+    }
+
+    public LiveData<Integer> getBatteryLevel() {
+        return batteryLevel;
+    }
+
+    public LiveData<Integer> getSprayLevel() {
+        return sprayLevel;
+    }
+
+    public LiveData<Integer> getProgressLevel() {
+        return progressLevel;
+    }
 
     /* -------------------------------------------------------
                         BLUETOOTH ACTIONS
        ------------------------------------------------------- */
     public void startDiscovery() {
         if (bluetoothService != null) bluetoothService.startDiscovery();
+    }
+
+    // used to stop discovery before refresh
+    public void stopDiscovery() {
+        if (bluetoothService != null) bluetoothService.stopDiscovery();
     }
 
     public void connectToDevice(BluetoothDevice device) {
