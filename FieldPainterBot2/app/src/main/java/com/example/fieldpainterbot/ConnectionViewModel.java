@@ -126,6 +126,10 @@ public class ConnectionViewModel extends AndroidViewModel {
         if (bluetoothService != null) bluetoothService.stopDiscovery();
     }
 
+    public void resetConnectionStatus() {
+        connectionStatus.postValue(ConnectionStatus.DISCONNECTED);
+    }
+
     public void connectToDevice(BluetoothDevice device) {
         if (bluetoothService != null) bluetoothService.connect(device);
     }

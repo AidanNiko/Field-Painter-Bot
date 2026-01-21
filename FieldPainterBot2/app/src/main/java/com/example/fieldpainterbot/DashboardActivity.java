@@ -32,11 +32,14 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Initialize ViewModel (shared Bluetooth logic)
         ConnectionViewModel viewModel = ConnectionViewModel.getInstance(getApplication());
-
-
+        
+        Log.d("DashboardActivity", "Dashboard Activity created");
+        ConnectionStatus initialStatus = viewModel.getConnectionStatus().getValue();
+        Log.d("DashboardActivity", "Initial connection status on Dashboard: " + initialStatus);
 
         viewModel.getConnectionStatus().observe(this, status -> {
             Log.d("Testing Dash", "Connection status changed Dashboard: " + status);
+            Log.d("DashboardActivity", "Status observer triggered - New status: " + status);
             if (status == ConnectionStatus.DISCONNECTED) {
                 updateBatteryUI(70);
                 updateSprayUI(100);
