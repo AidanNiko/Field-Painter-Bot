@@ -121,6 +121,11 @@ public class ConnectionViewModel extends AndroidViewModel {
         }
     }
 
+    // used to stop discovery before refresh
+    public void stopDiscovery() {
+        if (bluetoothService != null) bluetoothService.stopDiscovery();
+    }
+
     public void connectToDevice(BluetoothDevice device) {
         if (bluetoothService != null) bluetoothService.connect(device);
     }

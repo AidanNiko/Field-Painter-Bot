@@ -10,6 +10,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.widget.Button;
 
 public class ConnectionActivity extends AppCompatActivity {
 
@@ -45,6 +47,26 @@ public class ConnectionActivity extends AppCompatActivity {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // No Bluetooth hardware
+        // Handle Skip button
+        Button skipButton = findViewById(R.id.skipped);
+        skipButton.setOnClickListener(v -> {
+            Intent intent = new Intent(ConnectionActivity.this, DashboardActivity.class);
+            startActivity(intent);
+        });
+
+        // Handle Refresh button
+        FloatingActionButton refreshButton = findViewById(R.id.btnRefresh);
+        refreshButton.setOnClickListener(v -> {
+            Toast.makeText(this, "Refreshing devices...", Toast.LENGTH_SHORT).show();
+
+            // Stop and restart discovery (clean refresh)
+            viewModel.stopDiscovery();
+            viewModel.startDiscovery();
+        });
+
+
+        // Check Bluetooth availability
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
             Toast.makeText(this, "Bluetooth not supported on this device", Toast.LENGTH_SHORT).show();
             return;

@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
+
 public class FieldChoiceActivity extends AppCompatActivity {
 
     private String selectedField = "";
@@ -19,10 +20,9 @@ public class FieldChoiceActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_field_choice);
 
+
         // set up click handling for cards
         setupCardClicks();
-
-
 
         MaterialButton startbutton = findViewById(R.id.BeginProcess);
         ConnectionViewModel viewModel = ConnectionViewModel.getInstance(getApplication());
@@ -34,16 +34,9 @@ public class FieldChoiceActivity extends AppCompatActivity {
 
             ConnectionStatus status = viewModel.getConnectionStatus().getValue();
 
-            // ⚠️ If NOT connected → skip sending and go straight to painting
+            // ⚠️ If NOT connected → fetch data and send to backend
             if (status != ConnectionStatus.CONNECTED) {
 
-                // Reset UI since we're not actually sending
-                startbutton.setEnabled(true);
-                startbutton.setText("Start");
-
-                // Continue to painting
-                Intent intent = new Intent(FieldChoiceActivity.this, PaintingActivity.class);
-                startActivity(intent);
                 return;
             }
 
@@ -61,18 +54,15 @@ public class FieldChoiceActivity extends AppCompatActivity {
             );
         });
 
-
-
-
         // back button to go back to dashboard
         MaterialButton backbutton = findViewById(R.id.BackDshB);
         backbutton.setOnClickListener(v -> {
             Intent intent = new Intent(FieldChoiceActivity.this, DashboardActivity.class);
             startActivity(intent);
         });
-
-
     }
+
+
 
     // keeps track of which card is selected
     private MaterialCardView selectedCard = null;
