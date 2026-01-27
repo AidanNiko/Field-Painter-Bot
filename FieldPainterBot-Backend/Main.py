@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Header, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query, Body
 from pymongo import MongoClient
 from dotenv import load_dotenv
+from typing import List
 import os
 
 load_dotenv()
@@ -51,6 +52,25 @@ def get_data(
     collection = db[collection_name]
     items = list(collection.find({}, {"_id": 0}))  # exclude _id field
     return {"items": items}
+
+
+@app.post("/FieldData")
+def create_data(
+    collection_name: str = Query(..., description="Name of the MongoDB collection"),
+    documents: List[dict] = Body(..., description="Array of documents to insert"),
+    authorization: str = Header(None),
+):
+    # Check API key
+    if authorization != f"Bearer {API_KEY}":
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    # Insert documents (creates collection if it doesn't exist)
+    result = db[collection_name].insert_many(documents)
+    
+    return {
+        "message": f"Inserted {len(result.inserted_ids)} documents",
+        "collection": collection_name
+    }
 
 
 # --- Main block to run locally ---
