@@ -7,53 +7,88 @@ Author: Albert Huang <albert@csail.mit.edu>
 $Id: rfcomm-server.py 518 2007-08-10 07:20:07Z albert $
 """
 
+
+import json
 import time
 import bluetooth
-import random
 import subprocess
+from Lidar_Safety import start_lidar_safety
+from Conversion_Service import (
+    Convert_To_Array,
+    execute_field_pattern,
+    translate_manual_instruction,
+)
 
-subprocess.call(['sudo','hciconfig','hci0','piscan'])
 
-server_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-server_sock.bind(("", bluetooth.PORT_ANY))
-server_sock.listen(1)
+def setup_bluetooth_server():
+    subprocess.call(["sudo", "hciconfig", "hci0", "piscan"])
+    server_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+    server_sock.bind(("", bluetooth.PORT_ANY))
+    server_sock.listen(1)
+    port = server_sock.getsockname()[1]
+    uuid = "00001101-0000-1000-8000-00805F9B34FB"
+    bluetooth.advertise_service(
+        server_sock,
+        "SampleServer",
+        service_id=uuid,
+        service_classes=[uuid, bluetooth.SERIAL_PORT_CLASS],
+        profiles=[bluetooth.SERIAL_PORT_PROFILE],
+        # protocols=[bluetooth.OBEX_UUID]
+    )
+    print("Waiting for connection on RFCOMM channel", port)
+    return server_sock
 
-port = server_sock.getsockname()[1]
 
-uuid = "00001101-0000-1000-8000-00805F9B34FB"
+def handle_client(client_sock):
+    bat = "BATTERY:66"
+    paint = "SPRAY:33"
+    # Send initial status
+    time.sleep(1)
+    client_sock.send(bat.encode("utf-8"))
+    client_sock.send(paint.encode("utf-8"))
+    try:
+        while True:
+            # send updates
+            client_sock.send(bat.encode("utf-8"))
+            client_sock.send(paint.encode("utf-8"))
 
-bluetooth.advertise_service(server_sock, "SampleServer", service_id=uuid,
-                            service_classes=[uuid, bluetooth.SERIAL_PORT_CLASS],
-                            profiles=[bluetooth.SERIAL_PORT_PROFILE],
-                            #protocols=[bluetooth.OBEX_UUID]
-                            )
+            # receive commands
+            data = client_sock.recv(1024)
 
-print("Waiting for connection on RFCOMM channel", port)
+            if not data:
+                break
+            print("Received", data)
+            try:
+                msg = json.loads(data.decode("utf-8"))
+                if isinstance(msg, dict) and "items" in msg:
+                    instructions = Convert_To_Array(msg)
+                    execute_field_pattern(instructions)
+                elif isinstance(msg, dict):
+                    translate_manual_instruction(msg)
+                else:
+                    print("Unknown command format")
+            except Exception as e:
+                print("Error parsing command:", e)
+    except OSError:
+        raise
 
-client_sock, client_info = server_sock.accept()
-print("Accepted connection from", client_info)
 
-bat = "BATTERY:66"
-paint = "SPRAY:33"
+def main():
+    # Start LIDAR safety thread
+    start_lidar_safety()
+    server_sock = setup_bluetooth_server()
+    try:
+        client_sock, client_info = server_sock.accept()
+        print("Accepted connection from", client_info)
+        handle_client(client_sock)
+        print("Disconnected.")
+        client_sock.close()
+    except Exception as e:
+        print("Error:", e)
+    finally:
+        server_sock.close()
+        print("All done.")
 
-time.sleep(1)
-client_sock.send(bat.encode('utf-8'))
-client_sock.send(paint.encode('utf-8'))
 
-try:
-    while True:
-        client_sock.send(bat.encode('utf-8'))
-        client_sock.send(paint.encode('utf-8'))
-
-        data = client_sock.recv(1024)
-        if not data:
-            break
-        print("Received", data)
-except OSError:
-    pass
-
-print("Disconnected.")
-
-client_sock.close()
-server_sock.close()
-print("All done.")
+if __name__ == "__main__":
+    main()
