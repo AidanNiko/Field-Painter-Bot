@@ -7,7 +7,7 @@ Author: Albert Huang <albert@csail.mit.edu>
 $Id: rfcomm-server.py 518 2007-08-10 07:20:07Z albert $
 """
 
-
+import threading
 import json
 import time
 import bluetooth
@@ -18,6 +18,7 @@ from Conversion_Service import (
     execute_field_pattern,
     translate_manual_instruction,
 )
+from status_checks import battery_percent, read_battery_voltage
 
 
 def setup_bluetooth_server():
@@ -40,18 +41,32 @@ def setup_bluetooth_server():
 
 
 def handle_client(client_sock):
+
     bat = "BATTERY:66"
     paint = "SPRAY:33"
     # Send initial status
     time.sleep(1)
     client_sock.send(bat.encode("utf-8"))
     client_sock.send(paint.encode("utf-8"))
+
+    stop_battery_thread = threading.Event()
+
+    def battery_update_loop():
+        while not stop_battery_thread.is_set():
+            try:
+                bat_msg = f"BATTERY:{battery_percent(read_battery_voltage()):.1f}"
+                client_sock.send(bat_msg.encode("utf-8"))
+                # Optionally send paint status here if needed
+            except Exception as e:
+                print("Battery update error:", e)
+                break
+            time.sleep(10)  # Send every 10 seconds
+
+    battery_thread = threading.Thread(target=battery_update_loop, daemon=True)
+    battery_thread.start()
+
     try:
         while True:
-            # send updates
-            client_sock.send(bat.encode("utf-8"))
-            client_sock.send(paint.encode("utf-8"))
-
             # receive commands
             data = client_sock.recv(1024)
 
@@ -71,6 +86,9 @@ def handle_client(client_sock):
                 print("Error parsing command:", e)
     except OSError:
         raise
+    finally:
+        stop_battery_thread.set()
+        battery_thread.join(timeout=2)
 
 
 def main():

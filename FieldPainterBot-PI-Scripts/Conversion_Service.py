@@ -70,8 +70,10 @@ motor2_pwm = PWMOutputDevice(23, frequency=1000)  # P pin - Speed control
 motor2_dir = DigitalOutputDevice(24)  # DIR pin - Direction
 motor2_stop = DigitalOutputDevice(5, initial_value=False)  # STOP pin (LOW=run)
 
-# Spray
-spray = PWMOutputDevice(25, frequency=50)
+# Spray actuator via L298N
+spray_in1 = DigitalOutputDevice(20)  # IN1
+spray_in2 = DigitalOutputDevice(21)  # IN2
+spray_enable = PWMOutputDevice(25, frequency=50)  # ENA (PWM)
 
 
 # Motor control helper functions
@@ -113,7 +115,7 @@ def stop_all():
     """Emergency stop - halt all motors and spray."""
     motor1_halt()
     motor2_halt()
-    spray.value = 0
+    spray_enable.value = 0
 
 
 # =============================================================================
@@ -130,7 +132,9 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
     )
 
     if paint:
-        spray.value = 1.0
+        spray_in1.on()
+        spray_in2.off()
+        spray_enable.value = 1.0
 
     from mpu6050_gyro import get_yaw
 
@@ -149,13 +153,15 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
                 motor1_halt()
                 motor2_halt()
                 if paint:
-                    spray.value = 0
+                    spray_enable.value = 0
                 # Wait until unpaused
                 while system_paused:
                     time.sleep(0.1)
                 logger.info("Resuming walk...")
                 if paint:
-                    spray.value = 1.0
+                    spray_in1.on()
+                    spray_in2.off()
+                    spray_enable.value = 1.0
                 motor1_forward(DRIVE_SPEED)
                 motor2_forward(DRIVE_SPEED)
             # --- Yaw correction ---
@@ -172,14 +178,14 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
         motor1_halt()
         motor2_halt()
         if paint:
-            spray.value = 0
+            spray_enable.value = 0
         return True
     except Exception as e:
         logger.error(f"Error in handle_walk: {e}")
         motor1_halt()
         motor2_halt()
         if paint:
-            spray.value = 0
+            spray_enable.value = 0
         return False
 
 
@@ -192,7 +198,9 @@ def handle_turn(quantity: float, paint: bool = False, **kwargs) -> bool:
     )
 
     if paint:
-        spray.value = 1.0
+        spray_in1.on()
+        spray_in2.off()
+        spray_enable.value = 1.0
 
     turned_time = 0.0
     step = 0.05
@@ -211,12 +219,14 @@ def handle_turn(quantity: float, paint: bool = False, **kwargs) -> bool:
                 motor1_halt()
                 motor2_halt()
                 if paint:
-                    spray.value = 0
+                    spray_enable.value = 0
                 while system_paused:
                     time.sleep(0.1)
                 logger.info("Resuming turn...")
                 if paint:
-                    spray.value = 1.0
+                    spray_in1.on()
+                    spray_in2.off()
+                    spray_enable.value = 1.0
                 if quantity >= 0:
                     motor1_backward(TURN_SPEED)
                     motor2_forward(TURN_SPEED)
@@ -228,14 +238,14 @@ def handle_turn(quantity: float, paint: bool = False, **kwargs) -> bool:
         motor1_halt()
         motor2_halt()
         if paint:
-            spray.value = 0
+            spray_enable.value = 0
         return True
     except Exception as e:
         logger.error(f"Error in handle_turn: {e}")
         motor1_halt()
         motor2_halt()
         if paint:
-            spray.value = 0
+            spray_enable.value = 0
         return False
 
 
@@ -246,10 +256,11 @@ def handle_arc(quantity: float, angle: float = 90, **kwargs) -> bool:
     """Draw an arc while spraying. Quantity = radius in cm, angle = degrees. Supports pause/resume."""
     global system_paused
     from mpu6050_gyro import get_yaw
+
     radius = quantity
     # If angle is not provided, default to 90 degrees arc
-    if 'angle' in kwargs:
-        angle = kwargs['angle']
+    if "angle" in kwargs:
+        angle = kwargs["angle"]
     logger.info(
         f"Drawing arc with radius {radius}cm, angle {angle}° (pause/resume enabled, gyro correction)"
     )
@@ -271,7 +282,9 @@ def handle_arc(quantity: float, angle: float = 90, **kwargs) -> bool:
     circumference = 2 * math.pi * outer_radius
     total_duration = (circumference / CM_PER_SECOND) * (angle / 360)
 
-    spray.value = 1.0
+    spray_in1.on()
+    spray_in2.off()
+    spray_enable.value = 1.0
     moved_time = 0.0
     step = 0.05
     initial_yaw = get_yaw()
@@ -286,16 +299,20 @@ def handle_arc(quantity: float, angle: float = 90, **kwargs) -> bool:
                 )
                 motor1_halt()
                 motor2_halt()
-                spray.value = 0
+                spray_enable.value = 0
                 while system_paused:
                     time.sleep(0.1)
                 logger.info("Resuming arc...")
-                spray.value = 1.0
+                spray_in1.on()
+                spray_in2.off()
+                spray_enable.value = 1.0
                 motor1_forward(inner_speed)
                 motor2_forward(outer_speed)
             # --- Yaw correction ---
             current_yaw = get_yaw()
-            yaw_error = (current_yaw - initial_yaw) - (moved_time / total_duration) * expected_yaw_change
+            yaw_error = (current_yaw - initial_yaw) - (
+                moved_time / total_duration
+            ) * expected_yaw_change
             correction = Kp * yaw_error
             left_speed = max(0.0, min(1.0, inner_speed - correction))
             right_speed = max(0.0, min(1.0, outer_speed + correction))
@@ -306,27 +323,29 @@ def handle_arc(quantity: float, angle: float = 90, **kwargs) -> bool:
             moved_time += step
         motor1_halt()
         motor2_halt()
-        spray.value = 0
+        spray_enable.value = 0
         return True
     except Exception as e:
         logger.error(f"Error in handle_arc: {e}")
         motor1_halt()
         motor2_halt()
-        spray.value = 0
+        spray_enable.value = 0
         return False
 
 
 def handle_spray_on(**kwargs) -> bool:
-    """Turn spray on."""
+    """Turn spray on (forward direction)."""
     logger.info("Spray ON")
-    spray.value = 1.0
+    spray_in1.on()
+    spray_in2.off()
+    spray_enable.value = 1.0
     return True
 
 
 def handle_spray_off(**kwargs) -> bool:
     """Turn spray off."""
     logger.info("Spray OFF")
-    spray.value = 0
+    spray_enable.value = 0
     return True
 
 
@@ -533,11 +552,13 @@ def translate_manual_instruction(instruction: dict) -> bool:
 
     elif command == "spray" and state == "pressed":
         logger.info("Spray On")
-        spray.value = 1.0
+        spray_in1.on()
+        spray_in2.off()
+        spray_enable.value = 1.0
 
     elif command == "spray" and state == "released":
         logger.info("Spray Off")
-        spray.value = 0.0
+        spray_enable.value = 0
 
     elif state == "released":
         logger.info("Stop")
