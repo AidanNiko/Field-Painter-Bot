@@ -1,4 +1,7 @@
 import logging
+current_instruction_index = 0  # Tracks the current instruction being executed
+total_instructions = 0        # Tracks the total number of instructions
+
 import time
 import math
 from gpiozero import PWMOutputDevice, DigitalOutputDevice
@@ -452,21 +455,26 @@ def execute_field_pattern(instructions: list, pause_between: float = 0.5) -> boo
     Returns:
         True if all instructions succeeded, False if any failed
     """
-    logger.info(f"Starting field pattern with {len(instructions)} instructions")
+
+    global current_instruction_index, total_instructions
+    total_instructions = len(instructions)
+    logger.info(f"Starting field pattern with {total_instructions} instructions")
 
     try:
         for i, instruction in enumerate(instructions):
-            logger.info(f"--- Instruction {i+1}/{len(instructions)} ---")
+            current_instruction_index = i + 1  # 1-based index for user-friendly progress
+            logger.info(f"--- Instruction {current_instruction_index}/{total_instructions} ---")
             success = execute_instruction(instruction)
 
             if not success:
-                logger.error(f"Failed at instruction {instruction.get('order', i+1)}")
+                logger.error(f"Failed at instruction {instruction.get('order', current_instruction_index)}")
                 stop_all()
                 return False
 
             time.sleep(pause_between)
 
         logger.info("Field pattern complete!")
+        current_instruction_index = total_instructions
         return True
 
     except KeyboardInterrupt:
@@ -477,6 +485,15 @@ def execute_field_pattern(instructions: list, pause_between: float = 0.5) -> boo
         logger.error(f"Pattern failed: {e}")
         stop_all()
         return False
+
+
+# Progress getter for external modules
+def get_instruction_progress():
+    """
+    Returns (current_instruction_index, total_instructions)
+    """
+    global current_instruction_index, total_instructions
+    return current_instruction_index, total_instructions
 
 
 # =============================================================================

@@ -18,7 +18,7 @@ from Conversion_Service import (
     execute_field_pattern,
     translate_manual_instruction,
 )
-from status_checks import battery_percent, read_battery_voltage
+from status_checks import battery_percent, read_battery_voltage, progress_check
 
 
 def setup_bluetooth_server():
@@ -44,21 +44,34 @@ def handle_client(client_sock):
 
     bat = "BATTERY:66"
     paint = "SPRAY:33"
+    progress = "PROGRESS:60"
     # Send initial status
     time.sleep(1)
     client_sock.send(bat.encode("utf-8"))
     client_sock.send(paint.encode("utf-8"))
+    client_sock.send(progress.encode("utf-8"))
 
     stop_battery_thread = threading.Event()
 
     def battery_update_loop():
         while not stop_battery_thread.is_set():
             try:
-                bat_msg = f"BATTERY:{battery_percent(read_battery_voltage()):.1f}"
-                client_sock.send(bat_msg.encode("utf-8"))
-                # Optionally send paint status here if needed
+                try:
+                    bat_msg = f"BATTERY:{battery_percent(read_battery_voltage()):.1f}"
+                    client_sock.send(bat_msg.encode("utf-8"))
+                except Exception as e:
+                    print("Battery status error:", e)
+
+                try:
+                    progress_msg = (
+                        f"PROGRESS:{progress_check()[0]}/{progress_check()[1]}"
+                    )
+                    client_sock.send(progress_msg.encode("utf-8"))
+                except Exception as e:
+                    print("Progress status error:", e)
+
             except Exception as e:
-                print("Battery update error:", e)
+                print("Unknown battery update error:", e)
                 break
             time.sleep(10)  # Send every 10 seconds
 
