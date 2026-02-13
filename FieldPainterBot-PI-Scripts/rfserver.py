@@ -63,9 +63,7 @@ def handle_client(client_sock):
                     print("Battery status error:", e)
 
                 try:
-                    progress_msg = (
-                        f"PROGRESS:{progress_check()[0]}/{progress_check()[1]}"
-                    )
+                    progress_msg = f"PROGRESS:{progress_check():.1f}"
                     client_sock.send(progress_msg.encode("utf-8"))
                 except Exception as e:
                     print("Progress status error:", e)

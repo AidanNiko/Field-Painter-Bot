@@ -25,4 +25,5 @@ def battery_percent(voltage, min_v=3.0, max_v=4.2):
 
 def progress_check():
     current, total = get_instruction_progress()
-    return current, total
+    progress = (current / total) * 100 if total > 0 else 0
+    return progress
