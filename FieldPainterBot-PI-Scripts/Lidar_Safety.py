@@ -1,9 +1,15 @@
 import time
 import threading
+import logging
 from Conversion_Service import set_system_paused
 from rplidar import RPLidar
 
+
 # --- CONFIGURATION ---
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 LIDAR_PORT = "/dev/ttyUSB0"  # Change as needed
 DISTANCE_THRESHOLD = 1000  # mm, adjust for your needs
@@ -17,11 +23,13 @@ distance_traveled = 0  # mm, update this with your movement logic
 # Functions to control the system
 def stop_system():
     set_system_paused(True)
+    logger.warning("STOP: Obstacle detected!")
     print("STOP: Obstacle detected!")
 
 
 def resume_system():
     set_system_paused(False)
+    logger.info("RESUME: Path is clear.")
     print("RESUME: Path is clear.")
 
 
@@ -41,6 +49,7 @@ def get_lidar_distance():
                 if min_distance is None or distance < min_distance:
                     min_distance = distance
         if min_distance is not None:
+            logger.debug(f"LIDAR scan: min front distance = {min_distance} mm")
             return min_distance
         # If no valid reading, try again
 
@@ -49,8 +58,10 @@ def get_lidar_distance():
 def lidar_safety_loop():
     global system_stopped, distance_traveled
     try:
+        logger.info("LIDAR safety loop started.")
         while True:
             distance = get_lidar_distance()
+            logger.info(f"LIDAR min distance (front): {distance} mm")
             print(f"LIDAR min distance (front): {distance} mm")
             if distance < DISTANCE_THRESHOLD:
                 if not system_stopped:
@@ -65,8 +76,10 @@ def lidar_safety_loop():
                     system_stopped = False
             time.sleep(0.1)
     except Exception as e:
+        logger.error(f"LIDAR safety loop exited: {e}")
         print(f"LIDAR safety loop exited: {e}")
     finally:
+        logger.info("LIDAR safety loop cleaning up (stopping/disconnecting LIDAR)")
         lidar.stop()
         lidar.disconnect()
 
@@ -76,3 +89,15 @@ def start_lidar_safety():
     t = threading.Thread(target=lidar_safety_loop, daemon=True)
     t.start()
     return t
+
+
+if __name__ == "__main__":
+    logger.info("Starting LIDAR safety test. Press Ctrl+C to exit.")
+    print("Starting LIDAR safety test. Press Ctrl+C to exit.")
+    start_lidar_safety()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.info("Exiting LIDAR safety test.")
+        print("Exiting LIDAR safety test.")
