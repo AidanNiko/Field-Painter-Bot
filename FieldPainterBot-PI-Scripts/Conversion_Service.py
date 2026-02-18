@@ -1,6 +1,7 @@
 import logging
+
 current_instruction_index = 0  # Tracks the current instruction being executed
-total_instructions = 0        # Tracks the total number of instructions
+total_instructions = 0  # Tracks the total number of instructions
 
 import time
 import math
@@ -31,7 +32,7 @@ def set_system_paused(paused: bool):
 
 # Wheel and chassis measurements
 WHEEL_DIAMETER_CM = 16.5  # 6.5 inch wheels = 16.5cm (use 20.3 for 8 inch)
-WHEEL_BASE_CM = 50.0  # Distance between wheel centers - MEASURE THIS
+WHEEL_BASE_CM = 45.72  # Distance between wheel centers (18 inches = 45.72cm)
 
 # Motor speed settings (hoverboard motors are fast, keep these low for accuracy)
 DRIVE_SPEED = 0.3  # Speed for straight movement (0.0 - 1.0)
@@ -462,12 +463,18 @@ def execute_field_pattern(instructions: list, pause_between: float = 0.5) -> boo
 
     try:
         for i, instruction in enumerate(instructions):
-            current_instruction_index = i + 1  # 1-based index for user-friendly progress
-            logger.info(f"--- Instruction {current_instruction_index}/{total_instructions} ---")
+            current_instruction_index = (
+                i + 1
+            )  # 1-based index for user-friendly progress
+            logger.info(
+                f"--- Instruction {current_instruction_index}/{total_instructions} ---"
+            )
             success = execute_instruction(instruction)
 
             if not success:
-                logger.error(f"Failed at instruction {instruction.get('order', current_instruction_index)}")
+                logger.error(
+                    f"Failed at instruction {instruction.get('order', current_instruction_index)}"
+                )
                 stop_all()
                 return False
 
@@ -586,3 +593,8 @@ def translate_manual_instruction(instruction: dict) -> bool:
         return False
 
     return True
+
+
+if __name__ == "__main__":
+    calibration_test_distance()
+    calibration_test_rotation()
