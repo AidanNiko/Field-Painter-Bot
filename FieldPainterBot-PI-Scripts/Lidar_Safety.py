@@ -37,19 +37,24 @@ def resume_system():
 lidar = RPLidar(LIDAR_PORT)
 
 
-# Function to get the minimum distance in a scan (front-facing obstacle)
 def get_lidar_distance():
-    # Get one scan, return the minimum distance (in mm) in the front 60-degree sector
-    # Adjust angle range as needed for your robot's "front"
+    """
+    Get the minimum distance in the front-facing sector (e.g., -30 to +30 degrees, or 330 to 30 degrees).
+    Only considers data from the front of the rover as the LIDAR spins 360 degrees.
+    """
     min_distance = None
+    # Collect a full 360-degree scan, then filter for front sector
     for scan in lidar.iter_scans(max_buf_meas=500):
+        front_distances = []
         for _, angle, distance in scan:
-            # Consider only front sector (e.g., -30 to +30 degrees)
+            # Normalize angle to [0, 360)
+            angle = angle % 360
+            # Front sector: 330 to 360 or 0 to 30 (i.e., -30 to +30 degrees)
             if (angle >= 330 or angle <= 30) and distance > 0:
-                if min_distance is None or distance < min_distance:
-                    min_distance = distance
-        if min_distance is not None:
-            logger.debug(f"LIDAR scan: min front distance = {min_distance} mm")
+                front_distances.append(distance)
+        if front_distances:
+            min_distance = min(front_distances)
+            logger.debug(f"LIDAR scan: min front distance = {min_distance} mm, all front distances: {front_distances}")
             return min_distance
         # If no valid reading, try again
 
