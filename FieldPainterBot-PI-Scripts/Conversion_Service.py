@@ -64,7 +64,6 @@ INSTRUCTION_FIELDS = {
 # =============================================================================
 
 
-
 # --- PWM Pin Revision for ZS-X11H ---
 # Use hardware PWM pins for motor PWM (GPIO 12, 13, 18, or 19)
 # Example: GPIO 18 (physical pin 12) and GPIO 13 (physical pin 33)
@@ -72,19 +71,23 @@ MOTOR1_PWM_PIN = 18  # Hardware PWM0
 MOTOR2_PWM_PIN = 13  # Hardware PWM1
 
 # Motor 1 - BLDC Driver (ZS-X11H)
-motor1_pwm = PWMOutputDevice(MOTOR1_PWM_PIN, frequency=1000)  # P pin - Speed control (hardware PWM)
+motor1_pwm = PWMOutputDevice(
+    MOTOR1_PWM_PIN, frequency=1000
+)  # P pin - Speed control (hardware PWM)
 motor1_dir = DigitalOutputDevice(27)  # DIR pin - Direction
 motor1_stop = DigitalOutputDevice(22, initial_value=False)  # STOP pin (LOW=run)
 
 # Motor 2 - BLDC Driver (ZS-X11H)
-motor2_pwm = PWMOutputDevice(MOTOR2_PWM_PIN, frequency=1000)  # P pin - Speed control (hardware PWM)
+motor2_pwm = PWMOutputDevice(
+    MOTOR2_PWM_PIN, frequency=1000
+)  # P pin - Speed control (hardware PWM)
 motor2_dir = DigitalOutputDevice(24)  # DIR pin - Direction
 motor2_stop = DigitalOutputDevice(5, initial_value=False)  # STOP pin (LOW=run)
 
 # Spray actuator via L298N (software PWM is fine for spray)
 spray_in1 = DigitalOutputDevice(20)  # IN1
 spray_in2 = DigitalOutputDevice(21)  # IN2
-spray_enable = PWMOutputDevice(25, frequency=50)  # ENA (PWM)
+spray_enable = PWMOutputDevice(25, frequency=100)  # ENA (PWM)
 
 
 # Motor control helper functions
