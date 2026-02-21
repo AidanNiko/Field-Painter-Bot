@@ -87,10 +87,17 @@ motor2_stop = DigitalOutputDevice(5, initial_value=False)  # STOP pin (LOW=run)
 # Spray actuator via L298N (software PWM is fine for spray)
 spray_in1 = DigitalOutputDevice(20)  # IN1
 spray_in2 = DigitalOutputDevice(21)  # IN2
-spray_enable = PWMOutputDevice(25, frequency=100)  # ENA (PWM)
+spray_enable = PWMOutputDevice(25, frequency=50)  # ENA (PWM)
 
 
 # Motor control helper functions
+def sync_wheels_clockwise_low_pwm():
+    """Set both wheels to rotate clockwise at low PWM."""
+    low_pwm = 0.1
+    motor1_backward(low_pwm)  # Left wheel clockwise
+    motor2_forward(low_pwm)   # Right wheel counterclockwise
+
+
 def motor1_forward(speed: float):
     motor1_dir.off()
     motor1_stop.off()  # Enable motor
@@ -156,8 +163,8 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
     step = 0.05  # seconds per increment
     initial_yaw = get_yaw()
     Kp = 0.05  # Proportional gain, tune for your robot
-    motor1_forward(DRIVE_SPEED)
-    motor2_forward(DRIVE_SPEED)
+    motor1_backward(DRIVE_SPEED)  # Left wheel clockwise
+    motor2_forward(DRIVE_SPEED)   # Right wheel counterclockwise
     try:
         while moved_time < total_duration:
             if system_paused:
@@ -184,8 +191,8 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
             correction = Kp * error
             left_speed = max(0.0, min(1.0, DRIVE_SPEED - correction))
             right_speed = max(0.0, min(1.0, DRIVE_SPEED + correction))
-            motor1_forward(left_speed)
-            motor2_forward(right_speed)
+            motor1_backward(left_speed)  # Left wheel clockwise
+            motor2_forward(right_speed)  # Right wheel counterclockwise
             # --- End yaw correction ---
             time.sleep(step)
             moved_time += step
@@ -219,11 +226,11 @@ def handle_turn(quantity: float, paint: bool = False, **kwargs) -> bool:
     turned_time = 0.0
     step = 0.05
     if quantity >= 0:  # Turn left (counter-clockwise)
-        motor1_backward(TURN_SPEED)
-        motor2_forward(TURN_SPEED)
+        motor1_forward(TURN_SPEED)   # Left wheel counterclockwise
+        motor2_forward(TURN_SPEED)   # Right wheel counterclockwise
     else:  # Turn right (clockwise)
-        motor1_forward(TURN_SPEED)
-        motor2_backward(TURN_SPEED)
+        motor1_backward(TURN_SPEED)  # Left wheel clockwise
+        motor2_backward(TURN_SPEED)  # Right wheel clockwise
     try:
         while turned_time < total_duration:
             if system_paused:
@@ -242,10 +249,10 @@ def handle_turn(quantity: float, paint: bool = False, **kwargs) -> bool:
                     spray_in2.off()
                     spray_enable.value = 1.0
                 if quantity >= 0:
-                    motor1_backward(TURN_SPEED)
+                    motor1_forward(TURN_SPEED)
                     motor2_forward(TURN_SPEED)
                 else:
-                    motor1_forward(TURN_SPEED)
+                    motor1_backward(TURN_SPEED)
                     motor2_backward(TURN_SPEED)
             time.sleep(step)
             turned_time += step
@@ -303,8 +310,8 @@ def handle_arc(quantity: float, angle: float = 90, **kwargs) -> bool:
     step = 0.05
     initial_yaw = get_yaw()
     Kp = 0.05  # Tune for your robot
-    motor1_forward(inner_speed)
-    motor2_forward(outer_speed)
+    motor1_backward(inner_speed)  # Left wheel clockwise
+    motor2_forward(outer_speed)   # Right wheel counterclockwise
     try:
         while moved_time < total_duration:
             if system_paused:
@@ -330,8 +337,8 @@ def handle_arc(quantity: float, angle: float = 90, **kwargs) -> bool:
             correction = Kp * yaw_error
             left_speed = max(0.0, min(1.0, inner_speed - correction))
             right_speed = max(0.0, min(1.0, outer_speed + correction))
-            motor1_forward(left_speed)
-            motor2_forward(right_speed)
+            motor1_backward(left_speed)  # Left wheel clockwise
+            motor2_forward(right_speed)  # Right wheel counterclockwise
             # --- End yaw correction ---
             time.sleep(step)
             moved_time += step
@@ -527,8 +534,8 @@ def calibration_test_distance(test_seconds: float = 3.0):
     logger.info(f"Running motors at {DRIVE_SPEED} speed for {test_seconds}s")
     logger.info("Measure the distance traveled, then update CM_PER_SECOND")
 
-    motor1_forward(DRIVE_SPEED)
-    motor2_forward(DRIVE_SPEED)
+    motor1_backward(DRIVE_SPEED)  # Left wheel clockwise
+    motor2_forward(DRIVE_SPEED)   # Right wheel counterclockwise
     time.sleep(test_seconds)
     motor1_halt()
     motor2_halt()
@@ -565,9 +572,8 @@ def translate_manual_instruction(instruction: dict) -> bool:
     state = instruction.get("state")
 
     if command == "forward" and state == "pressed":
-        logger.info("Move Forward")
-        motor1_forward(0.8)
-        motor2_forward(0.8)
+        logger.info("Sync Wheels Clockwise Low PWM (Both CW)")
+        sync_wheels_clockwise_low_pwm()
 
     elif command == "backward" and state == "pressed":
         logger.info("Move Backward")
@@ -575,14 +581,14 @@ def translate_manual_instruction(instruction: dict) -> bool:
         motor2_backward(0.8)
 
     elif command == "left" and state == "pressed":
-        logger.info("Turn Left")
-        motor1_forward(0.3)  # Left motor slower
-        motor2_forward(0.8)  # Right motor faster
+        logger.info("Turn Left (Both CCW)")
+        motor1_forward(0.8)  # Left wheel counterclockwise
+        motor2_forward(0.8)  # Right wheel counterclockwise
 
     elif command == "right" and state == "pressed":
-        logger.info("Turn Right")
-        motor1_forward(0.8)  # Left motor faster
-        motor2_forward(0.3)  # Right motor slower
+        logger.info("Turn Right (Both CW)")
+        motor1_backward(0.8)  # Left wheel clockwise
+        motor2_backward(0.8)  # Right wheel clockwise
 
     elif command == "spray" and state == "pressed":
         logger.info("Spray On")
