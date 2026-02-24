@@ -6,6 +6,8 @@ total_instructions = 0  # Tracks the total number of instructions
 import time
 import math
 from gpiozero import PWMOutputDevice, DigitalOutputDevice
+# Import distance update from distance_utils
+from distance_utils import update_distance_traveled
 
 
 # Configure logging
@@ -196,6 +198,8 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
             # --- End yaw correction ---
             time.sleep(step)
             moved_time += step
+            # Update distance traveled (step is in seconds, CM_PER_SECOND is speed)
+            update_distance_traveled(step, CM_PER_SECOND)
         motor1_halt()
         motor2_halt()
         if paint:

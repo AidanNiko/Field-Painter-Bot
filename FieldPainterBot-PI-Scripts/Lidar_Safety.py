@@ -1,23 +1,43 @@
 import time
 import threading
 import logging
+
 from Conversion_Service import set_system_paused
+from distance_utils import update_distance_traveled, distance_traveled
 from rplidar import RPLidar
 
 
-# --- CONFIGURATION ---
+# For quick standalone test, add this at the top:
+# def set_system_paused(paused: bool):
+#     print(f"[TEST] System paused set to: {paused}")
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-LIDAR_PORT = "/dev/ttyUSB0"  # Change as needed
-DISTANCE_THRESHOLD = 1000  # mm, adjust for your needs
+LIDAR_PORT = "COM4"  # Change as needed
+DISTANCE_THRESHOLD = 350  # mm, adjust for your needs
 
 
 # State variables
 system_stopped = False
 distance_traveled = 0  # mm, update this with your movement logic
+
+
+# --- Distance Tracking ---
+# Call this function from your movement code to update distance_traveled
+def update_distance_traveled(duration_s, speed_cm_per_s=50.0):
+    """
+    Update the estimated distance traveled.
+    duration_s: time spent moving (seconds)
+    speed_cm_per_s: speed in cm/s (default matches Conversion_Service)
+    Updates global distance_traveled in mm.
+    """
+    global distance_traveled
+    distance_cm = duration_s * speed_cm_per_s
+    distance_traveled += distance_cm * 10  # convert cm to mm
+    return distance_traveled
 
 
 # Functions to control the system
@@ -34,7 +54,7 @@ def resume_system():
 
 
 # Set up RPLIDAR connection
-lidar = RPLidar(LIDAR_PORT)
+lidar = RPLidar(LIDAR_PORT, baudrate=256000)
 
 
 def get_lidar_distance():
@@ -54,14 +74,16 @@ def get_lidar_distance():
                 front_distances.append(distance)
         if front_distances:
             min_distance = min(front_distances)
-            logger.debug(f"LIDAR scan: min front distance = {min_distance} mm, all front distances: {front_distances}")
+            logger.debug(
+                f"LIDAR scan: min front distance = {min_distance} mm, all front distances: {front_distances}"
+            )
             return min_distance
         # If no valid reading, try again
 
 
 # LIDAR safety loop to be run in a thread
 def lidar_safety_loop():
-    global system_stopped, distance_traveled
+    global system_stopped
     try:
         logger.info("LIDAR safety loop started.")
         while True:
@@ -71,13 +93,10 @@ def lidar_safety_loop():
             if distance < DISTANCE_THRESHOLD:
                 if not system_stopped:
                     stop_system()
-                    # Save distance traveled so far (update as needed)
-                    # distance_traveled = ...
                     system_stopped = True
             else:
                 if system_stopped:
                     resume_system()
-                    # Resume from distance_traveled (update as needed)
                     system_stopped = False
             time.sleep(0.1)
     except Exception as e:
@@ -91,7 +110,36 @@ def lidar_safety_loop():
 
 # Function to start the LIDAR safety loop in a background thread
 def start_lidar_safety():
-    t = threading.Thread(target=lidar_safety_loop, daemon=True)
+    def lidar_thread_with_retry():
+        global lidar
+        while True:
+            try:
+                # Try to (re)initialize LIDAR if not already initialized
+                if "lidar" not in globals() or lidar is None:
+                    try:
+                        lidar = RPLidar(LIDAR_PORT)
+                        logger.info("LIDAR initialized successfully.")
+                    except Exception as e:
+                        logger.error(f"LIDAR not detected or failed to initialize: {e}")
+                        print(f"LIDAR not detected or failed to initialize: {e}")
+                        lidar = None
+                        time.sleep(10)
+                        continue
+                lidar_safety_loop()
+                break  # Exit if loop ends normally
+            except Exception as e:
+                logger.error(f"LIDAR safety loop crashed: {e}")
+                print(f"LIDAR safety loop crashed: {e}")
+                if lidar:
+                    try:
+                        lidar.stop()
+                        lidar.disconnect()
+                    except Exception:
+                        pass
+                    lidar = None
+                time.sleep(10)  # Wait before retrying
+
+    t = threading.Thread(target=lidar_thread_with_retry, daemon=True)
     t.start()
     return t
 
