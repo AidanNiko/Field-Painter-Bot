@@ -16,7 +16,7 @@ from rplidar import RPLidar
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-LIDAR_PORT = "COM4"  # Change as needed
+LIDAR_PORT = "/dev/ttyUSB0"  # Change as needed
 DISTANCE_THRESHOLD = 350  # mm, adjust for your needs
 
 

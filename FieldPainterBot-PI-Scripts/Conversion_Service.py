@@ -6,7 +6,6 @@ total_instructions = 0  # Tracks the total number of instructions
 import time
 import math
 from gpiozero import PWMOutputDevice, DigitalOutputDevice
-# Import distance update from distance_utils
 from distance_utils import update_distance_traveled
 
 
@@ -74,14 +73,14 @@ MOTOR2_PWM_PIN = 13  # Hardware PWM1
 
 # Motor 1 - BLDC Driver (ZS-X11H)
 motor1_pwm = PWMOutputDevice(
-    MOTOR1_PWM_PIN, frequency=1000
+    MOTOR1_PWM_PIN, frequency=500
 )  # P pin - Speed control (hardware PWM)
 motor1_dir = DigitalOutputDevice(27)  # DIR pin - Direction
 motor1_stop = DigitalOutputDevice(22, initial_value=False)  # STOP pin (LOW=run)
 
 # Motor 2 - BLDC Driver (ZS-X11H)
 motor2_pwm = PWMOutputDevice(
-    MOTOR2_PWM_PIN, frequency=1000
+    MOTOR2_PWM_PIN, frequency=500
 )  # P pin - Speed control (hardware PWM)
 motor2_dir = DigitalOutputDevice(24)  # DIR pin - Direction
 motor2_stop = DigitalOutputDevice(5, initial_value=False)  # STOP pin (LOW=run)
@@ -92,53 +91,45 @@ spray_in2 = DigitalOutputDevice(21)  # IN2
 spray_enable = PWMOutputDevice(25, frequency=50)  # ENA (PWM)
 
 
-# Motor control helper functions
-def sync_wheels_clockwise_low_pwm():
-    """Set both wheels to rotate clockwise at low PWM."""
-    low_pwm = 0.1
-    motor1_backward(low_pwm)  # Left wheel clockwise
-    motor2_forward(low_pwm)   # Right wheel counterclockwise
-
-
 def motor1_forward(speed: float):
     motor1_dir.off()
-    motor1_stop.off()  # Enable motor
+    motor1_stop.on()  # Enable motor
     motor1_pwm.value = speed
 
 
 def motor1_backward(speed: float):
     motor1_dir.on()
-    motor1_stop.off()  # Enable motor
+    motor1_stop.on()  # Enable motor
     motor1_pwm.value = speed
 
 
 def motor1_halt():
     motor1_pwm.value = 0
-    motor1_stop.on()  # Disable motor
+    motor1_stop.off()  # Disable motor
 
 
 def motor2_forward(speed: float):
     motor2_dir.off()
-    motor2_stop.off()  # Enable motor
+    motor2_stop.on()  # Enable motor
     motor2_pwm.value = speed
 
 
 def motor2_backward(speed: float):
     motor2_dir.on()
-    motor2_stop.off()  # Enable motor
+    motor2_stop.on()  # Enable motor
     motor2_pwm.value = speed
 
 
 def motor2_halt():
     motor2_pwm.value = 0
-    motor2_stop.on()  # Disable motor
+    motor2_stop.off()  # Disable motor
 
 
 def stop_all():
     """Emergency stop - halt all motors and spray."""
     motor1_halt()
     motor2_halt()
-    spray_enable.value = 0
+    handle_spray_off()
 
 
 # =============================================================================
@@ -155,9 +146,7 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
     )
 
     if paint:
-        spray_in1.on()
-        spray_in2.off()
-        spray_enable.value = 1.0
+        handle_spray_on()
 
     from mpu6050_gyro import get_yaw
 
@@ -166,7 +155,7 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
     initial_yaw = get_yaw()
     Kp = 0.05  # Proportional gain, tune for your robot
     motor1_backward(DRIVE_SPEED)  # Left wheel clockwise
-    motor2_forward(DRIVE_SPEED)   # Right wheel counterclockwise
+    motor2_forward(DRIVE_SPEED)  # Right wheel counterclockwise
     try:
         while moved_time < total_duration:
             if system_paused:
@@ -176,15 +165,13 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
                 motor1_halt()
                 motor2_halt()
                 if paint:
-                    spray_enable.value = 0
+                    handle_spray_off()
                 # Wait until unpaused
                 while system_paused:
                     time.sleep(0.1)
                 logger.info("Resuming walk...")
                 if paint:
-                    spray_in1.on()
-                    spray_in2.off()
-                    spray_enable.value = 1.0
+                    handle_spray_on()
                 motor1_forward(DRIVE_SPEED)
                 motor2_forward(DRIVE_SPEED)
             # --- Yaw correction ---
@@ -203,14 +190,14 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
         motor1_halt()
         motor2_halt()
         if paint:
-            spray_enable.value = 0
+            handle_spray_off()
         return True
     except Exception as e:
         logger.error(f"Error in handle_walk: {e}")
         motor1_halt()
         motor2_halt()
         if paint:
-            spray_enable.value = 0
+            handle_spray_off()
         return False
 
 
@@ -223,15 +210,13 @@ def handle_turn(quantity: float, paint: bool = False, **kwargs) -> bool:
     )
 
     if paint:
-        spray_in1.on()
-        spray_in2.off()
-        spray_enable.value = 1.0
+        handle_spray_on()
 
     turned_time = 0.0
     step = 0.05
     if quantity >= 0:  # Turn left (counter-clockwise)
-        motor1_forward(TURN_SPEED)   # Left wheel counterclockwise
-        motor2_forward(TURN_SPEED)   # Right wheel counterclockwise
+        motor1_forward(TURN_SPEED)  # Left wheel counterclockwise
+        motor2_forward(TURN_SPEED)  # Right wheel counterclockwise
     else:  # Turn right (clockwise)
         motor1_backward(TURN_SPEED)  # Left wheel clockwise
         motor2_backward(TURN_SPEED)  # Right wheel clockwise
@@ -244,14 +229,12 @@ def handle_turn(quantity: float, paint: bool = False, **kwargs) -> bool:
                 motor1_halt()
                 motor2_halt()
                 if paint:
-                    spray_enable.value = 0
+                    handle_spray_off()
                 while system_paused:
                     time.sleep(0.1)
                 logger.info("Resuming turn...")
                 if paint:
-                    spray_in1.on()
-                    spray_in2.off()
-                    spray_enable.value = 1.0
+                    handle_spray_on()
                 if quantity >= 0:
                     motor1_forward(TURN_SPEED)
                     motor2_forward(TURN_SPEED)
@@ -263,14 +246,14 @@ def handle_turn(quantity: float, paint: bool = False, **kwargs) -> bool:
         motor1_halt()
         motor2_halt()
         if paint:
-            spray_enable.value = 0
+            handle_spray_off()
         return True
     except Exception as e:
         logger.error(f"Error in handle_turn: {e}")
         motor1_halt()
         motor2_halt()
         if paint:
-            spray_enable.value = 0
+            handle_spray_off()
         return False
 
 
@@ -307,15 +290,13 @@ def handle_arc(quantity: float, angle: float = 90, **kwargs) -> bool:
     circumference = 2 * math.pi * outer_radius
     total_duration = (circumference / CM_PER_SECOND) * (angle / 360)
 
-    spray_in1.on()
-    spray_in2.off()
-    spray_enable.value = 1.0
+    handle_spray_on()
     moved_time = 0.0
     step = 0.05
     initial_yaw = get_yaw()
     Kp = 0.05  # Tune for your robot
     motor1_backward(inner_speed)  # Left wheel clockwise
-    motor2_forward(outer_speed)   # Right wheel counterclockwise
+    motor2_forward(outer_speed)  # Right wheel counterclockwise
     try:
         while moved_time < total_duration:
             if system_paused:
@@ -324,13 +305,11 @@ def handle_arc(quantity: float, angle: float = 90, **kwargs) -> bool:
                 )
                 motor1_halt()
                 motor2_halt()
-                spray_enable.value = 0
+                handle_spray_off()
                 while system_paused:
                     time.sleep(0.1)
                 logger.info("Resuming arc...")
-                spray_in1.on()
-                spray_in2.off()
-                spray_enable.value = 1.0
+                handle_spray_on()
                 motor1_forward(inner_speed)
                 motor2_forward(outer_speed)
             # --- Yaw correction ---
@@ -348,28 +327,32 @@ def handle_arc(quantity: float, angle: float = 90, **kwargs) -> bool:
             moved_time += step
         motor1_halt()
         motor2_halt()
-        spray_enable.value = 0
+        handle_spray_off()
         return True
     except Exception as e:
         logger.error(f"Error in handle_arc: {e}")
         motor1_halt()
         motor2_halt()
-        spray_enable.value = 0
+        handle_spray_off()
         return False
 
 
 def handle_spray_on(**kwargs) -> bool:
-    """Turn spray on (forward direction)."""
-    logger.info("Spray ON")
+    logger.info("Spray ON (actuator out)")
     spray_in1.on()
     spray_in2.off()
     spray_enable.value = 1.0
+    time.sleep(1.5)  # Extend actuator for 1.5s
+    spray_enable.value = 0
     return True
 
 
 def handle_spray_off(**kwargs) -> bool:
-    """Turn spray off."""
-    logger.info("Spray OFF")
+    logger.info("Spray OFF (actuator back)")
+    spray_in1.off()
+    spray_in2.on()
+    spray_enable.value = 1.0
+    time.sleep(1.5)  # Retract actuator for 1.5s
     spray_enable.value = 0
     return True
 
@@ -539,7 +522,7 @@ def calibration_test_distance(test_seconds: float = 3.0):
     logger.info("Measure the distance traveled, then update CM_PER_SECOND")
 
     motor1_backward(DRIVE_SPEED)  # Left wheel clockwise
-    motor2_forward(DRIVE_SPEED)   # Right wheel counterclockwise
+    motor2_forward(DRIVE_SPEED)  # Right wheel counterclockwise
     time.sleep(test_seconds)
     motor1_halt()
     motor2_halt()
@@ -576,12 +559,12 @@ def translate_manual_instruction(instruction: dict) -> bool:
     state = instruction.get("state")
 
     if command == "forward" and state == "pressed":
-        logger.info("Sync Wheels Clockwise Low PWM (Both CW)")
-        sync_wheels_clockwise_low_pwm()
+        motor1_backward(0.8)
+        motor2_forward(0.8)
 
     elif command == "backward" and state == "pressed":
         logger.info("Move Backward")
-        motor1_backward(0.8)
+        motor1_forward(0.8)
         motor2_backward(0.8)
 
     elif command == "left" and state == "pressed":
@@ -599,9 +582,15 @@ def translate_manual_instruction(instruction: dict) -> bool:
         spray_in1.on()
         spray_in2.off()
         spray_enable.value = 1.0
+        time.sleep(1.5)  # Limit spray duration
+        spray_enable.value = 0
 
     elif command == "spray" and state == "released":
-        logger.info("Spray Off")
+        logger.info("Spray On")
+        spray_in1.off()
+        spray_in2.on()
+        spray_enable.value = 1.0
+        time.sleep(1.5)  # Limit spray duration
         spray_enable.value = 0
 
     elif state == "released":

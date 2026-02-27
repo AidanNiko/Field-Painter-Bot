@@ -7,7 +7,7 @@ from Conversion_Service import get_instruction_progress
 # Initialize I2C and ADC
 i2c = busio.I2C(board.SCL, board.SDA)
 ads = ADS1115(i2c)
-chan = AnalogIn(ads, ADS1115.P0)  # Use P0 (A0) for battery voltage
+chan = AnalogIn(ads, 0)  # Use P0 (A0) for battery voltage
 
 
 def read_battery_voltage():
