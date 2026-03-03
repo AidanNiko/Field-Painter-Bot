@@ -558,26 +558,26 @@ def translate_manual_instruction(instruction: dict) -> bool:
     command = instruction.get("command")
     state = instruction.get("state")
 
-    if command == "forward" and state == "pressed":
+    if command == "FORWARD" and state == "pressed":
         motor1_backward(0.8)
         motor2_forward(0.8)
 
-    elif command == "backward" and state == "pressed":
+    elif command == "BACK" and state == "pressed":
         logger.info("Move Backward")
         motor1_forward(0.8)
         motor2_backward(0.8)
 
-    elif command == "left" and state == "pressed":
+    elif command == "LEFT" and state == "pressed":
         logger.info("Turn Left (Both CCW)")
         motor1_forward(0.8)  # Left wheel counterclockwise
         motor2_forward(0.8)  # Right wheel counterclockwise
 
-    elif command == "right" and state == "pressed":
+    elif command == "RIGHT" and state == "pressed":
         logger.info("Turn Right (Both CW)")
         motor1_backward(0.8)  # Left wheel clockwise
         motor2_backward(0.8)  # Right wheel clockwise
 
-    elif command == "spray" and state == "pressed":
+    elif command == "SPRAY" and state == "pressed":
         logger.info("Spray On")
         spray_in1.on()
         spray_in2.off()
@@ -585,7 +585,7 @@ def translate_manual_instruction(instruction: dict) -> bool:
         time.sleep(1.5)  # Limit spray duration
         spray_enable.value = 0
 
-    elif command == "spray" and state == "released":
+    elif command == "SPRAY" and state == "released":
         logger.info("Spray On")
         spray_in1.off()
         spray_in2.on()

@@ -19,6 +19,11 @@ from Conversion_Service import (
     translate_manual_instruction,
 )
 from status_checks import battery_percent, read_battery_voltage, progress_check
+import logging
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def setup_bluetooth_server():
@@ -58,18 +63,20 @@ def handle_client(client_sock):
             try:
                 try:
                     bat_msg = f"BATTERY:{battery_percent(read_battery_voltage()):.1f}"
+                    logger.info("Sending battery status: %s", bat_msg)
                     client_sock.send(bat_msg.encode("utf-8"))
                 except Exception as e:
-                    print("Battery status error:", e)
+                    logger.error("Battery status error: %s", e)
 
                 try:
                     progress_msg = f"PROGRESS:{progress_check():.1f}"
+                    logger.info("Sending progress status: %s", progress_msg)
                     client_sock.send(progress_msg.encode("utf-8"))
                 except Exception as e:
-                    print("Progress status error:", e)
+                    logger.error("Progress status error: %s", e)
 
             except Exception as e:
-                print("Unknown battery update error:", e)
+                logger.error("Unknown battery update error: %s", e)
                 break
             time.sleep(10)  # Send every 10 seconds
 
@@ -83,7 +90,7 @@ def handle_client(client_sock):
 
             if not data:
                 break
-            print("Received", data)
+            logger.info("Received %s", data)
             try:
                 msg = json.loads(data.decode("utf-8"))
                 if isinstance(msg, dict) and "items" in msg:
@@ -92,9 +99,9 @@ def handle_client(client_sock):
                 elif isinstance(msg, dict):
                     translate_manual_instruction(msg)
                 else:
-                    print("Unknown command format")
+                    logger.warning("Unknown command format")
             except Exception as e:
-                print("Error parsing command:", e)
+                logger.error("Error parsing command: %s", e)
     except OSError:
         raise
     finally:
@@ -108,15 +115,15 @@ def main():
     server_sock = setup_bluetooth_server()
     try:
         client_sock, client_info = server_sock.accept()
-        print("Accepted connection from", client_info)
+        logger.info("Accepted connection from %s", client_info)
         handle_client(client_sock)
-        print("Disconnected.")
+        logger.info("Disconnected.")
         client_sock.close()
     except Exception as e:
-        print("Error:", e)
+        logger.error("Error: %s", e)
     finally:
         server_sock.close()
-        print("All done.")
+        logger.info("All done.")
 
 
 if __name__ == "__main__":
