@@ -16,7 +16,7 @@ def read_battery_voltage():
     return voltage
 
 
-def battery_percent(voltage, min_v=3.0, max_v=4.2):
+def battery_percent(voltage, min_v=10.0, max_v=14.6):
     # Adjust min_v and max_v for your battery chemistry
     percent = (voltage - min_v) / (max_v - min_v) * 100
     percent = max(0, min(100, percent))

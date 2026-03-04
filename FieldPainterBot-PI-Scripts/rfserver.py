@@ -62,14 +62,14 @@ def handle_client(client_sock):
         while not stop_battery_thread.is_set():
             try:
                 try:
-                    bat_msg = f"BATTERY:{battery_percent(read_battery_voltage()):.1f}"
+                    bat_msg = f"BATTERY:{int(battery_percent(read_battery_voltage()))}"
                     logger.info("Sending battery status: %s", bat_msg)
                     client_sock.send(bat_msg.encode("utf-8"))
                 except Exception as e:
                     logger.error("Battery status error: %s", e)
 
                 try:
-                    progress_msg = f"PROGRESS:{progress_check():.1f}"
+                    progress_msg = f"PROGRESS:{int(progress_check())}"
                     logger.info("Sending progress status: %s", progress_msg)
                     client_sock.send(progress_msg.encode("utf-8"))
                 except Exception as e:
