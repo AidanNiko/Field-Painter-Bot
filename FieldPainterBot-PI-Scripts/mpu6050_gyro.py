@@ -8,6 +8,14 @@ import time
 # Default I2C address for MPU6050 is 0x68
 sensor = mpu6050(0x68)
 
+# =============================================================================
+# MOUNTING CORRECTION - adjust these if your sensor is not oriented correctly
+# YAW_AXIS: which gyro axis represents your robot's rotation ('x', 'y', or 'z')
+# YAW_SIGN: 1 for normal, -1 to flip the direction
+# =============================================================================
+YAW_AXIS = 'z'
+YAW_SIGN = 1
+
 def read_gyro_accel():
     accel_data = sensor.get_accel_data()
     gyro_data = sensor.get_gyro_data()
@@ -30,8 +38,8 @@ def get_yaw():
         return yaw
     dt = current_time - last_time
     last_time = current_time
-    # Gyro z is in deg/sec, integrate to get angle
-    yaw += gyro_data['z'] * dt
+    # Use configured axis and sign to handle any mounting orientation
+    yaw += gyro_data[YAW_AXIS] * YAW_SIGN * dt
     return yaw
 
 if __name__ == "__main__":

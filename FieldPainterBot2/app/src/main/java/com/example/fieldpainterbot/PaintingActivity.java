@@ -5,6 +5,7 @@ import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -17,6 +18,7 @@ public class PaintingActivity extends AppCompatActivity {
     private TextView percentLevel;
 
     private TextView percentSpray;
+    private boolean isPaused = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,9 +78,33 @@ public class PaintingActivity extends AppCompatActivity {
 
 // Default behavior (Cancel → Dashboard)
         Runnable defaultAction = () -> {
+            viewModel.sendHaltCommand("QUIT");
             Intent intent = new Intent(PaintingActivity.this, DashboardActivity.class);
             startActivity(intent);
         };
+
+        ImageButton pauseResumeButton = findViewById(R.id.pauseResumeButton);
+
+
+
+        pauseResumeButton.setOnClickListener(v -> {
+
+            if(isPaused){
+                pauseResumeButton.setImageResource(R.drawable.baseline_pause_circle_outline_24);
+                isPaused = false;
+                viewModel.sendHaltCommand("RESUME");
+
+                // Resume robot
+            }
+            else{
+                pauseResumeButton.setImageResource(R.drawable.outline_arrow_drop_down_circle_24);
+                isPaused = true;
+                viewModel.sendHaltCommand("HALT");
+
+                // Pause robot
+            }
+
+        });
 
 // Set initial behavior
         actionButton.setOnClickListener(v -> defaultAction.run());

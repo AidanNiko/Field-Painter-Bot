@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 # Global pause flag for safety (set by LIDAR safety or other modules)
 system_paused = False
 
+# Global cancel flag - set to True to abort execute_field_pattern entirely
+system_cancelled = False
+
 
 def set_system_paused(paused: bool):
     global system_paused
@@ -25,6 +28,14 @@ def set_system_paused(paused: bool):
         stop_all()
     else:
         logger.info("System RESUMED by safety system.")
+
+
+def set_system_cancelled(cancelled: bool):
+    global system_cancelled
+    system_cancelled = cancelled
+    if cancelled:
+        logger.warning("System CANCELLED: aborting field pattern.")
+        stop_all()
 
 
 # =============================================================================
@@ -461,12 +472,17 @@ def execute_field_pattern(instructions: list, pause_between: float = 0.5) -> boo
         True if all instructions succeeded, False if any failed
     """
 
-    global current_instruction_index, total_instructions
+    global current_instruction_index, total_instructions, system_cancelled
+    system_cancelled = False  # Reset cancel flag at the start of a new pattern
     total_instructions = len(instructions)
     logger.info(f"Starting field pattern with {total_instructions} instructions")
 
     try:
         for i, instruction in enumerate(instructions):
+            if system_cancelled:
+                logger.warning("Pattern cancelled by QUIT command.")
+                stop_all()
+                return False
             current_instruction_index = (
                 i + 1
             )  # 1-based index for user-friendly progress
@@ -479,6 +495,11 @@ def execute_field_pattern(instructions: list, pause_between: float = 0.5) -> boo
                 logger.error(
                     f"Failed at instruction {instruction.get('order', current_instruction_index)}"
                 )
+                stop_all()
+                return False
+
+            if system_cancelled:
+                logger.warning("Pattern cancelled by QUIT command.")
                 stop_all()
                 return False
 

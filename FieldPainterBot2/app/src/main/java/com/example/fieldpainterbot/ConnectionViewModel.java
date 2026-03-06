@@ -181,4 +181,17 @@ public class ConnectionViewModel extends AndroidViewModel {
             e.printStackTrace();
         }
     }
+    public void sendHaltCommand(String command) {
+        try {
+
+            bluetoothService.send(
+                    command,
+                    () -> Log.d("SEND", "Sent: " + command),
+                    () -> Log.e("SEND", "Failed to send: " + command)
+            );
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

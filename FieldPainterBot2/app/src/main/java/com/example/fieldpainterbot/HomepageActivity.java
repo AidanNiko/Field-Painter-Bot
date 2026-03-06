@@ -22,6 +22,8 @@ public class HomepageActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                FieldDatabaseConnection db = new FieldDatabaseConnection();
+                db.wakeServer();
                 Intent intent = new Intent(HomepageActivity.this, ConnectionActivity.class);
                 startActivity(intent);
             }

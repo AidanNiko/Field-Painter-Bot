@@ -17,6 +17,8 @@ from Conversion_Service import (
     Convert_To_Array,
     execute_field_pattern,
     translate_manual_instruction,
+    set_system_paused,
+    set_system_cancelled,
 )
 from status_checks import battery_percent, read_battery_voltage, progress_check
 import logging
@@ -83,6 +85,8 @@ def handle_client(client_sock):
     battery_thread = threading.Thread(target=battery_update_loop, daemon=True)
     battery_thread.start()
 
+    pattern_thread = None
+
     try:
         while True:
             # receive commands
@@ -90,12 +94,37 @@ def handle_client(client_sock):
 
             if not data:
                 break
-            logger.info("Received %s", data)
+            decoded_data = data.decode("utf-8").strip()
+            if decoded_data == "HALT":
+                set_system_paused(True)
+                logger.warning("HALT command received: system paused.")
+                continue
+            elif decoded_data == "RESUME":
+                set_system_paused(False)
+                logger.info("RESUME command received: system resumed.")
+                continue
+            elif decoded_data == "QUIT":
+                set_system_cancelled(True)
+                set_system_paused(False)  # Unblock any paused wait loop
+                if pattern_thread and pattern_thread.is_alive():
+                    pattern_thread.join(timeout=5)
+                logger.warning("QUIT command received: pattern execution cancelled.")
+                continue
+            logger.info("Received %s", decoded_data)
             try:
-                msg = json.loads(data.decode("utf-8"))
+                msg = json.loads(decoded_data)
                 if isinstance(msg, dict) and "items" in msg:
+                    # Run field pattern in a thread so HALT can be received mid-execution
+                    if pattern_thread and pattern_thread.is_alive():
+                        logger.warning("Pattern already running, ignoring new request.")
+                        continue
                     instructions = Convert_To_Array(msg)
-                    execute_field_pattern(instructions)
+                    pattern_thread = threading.Thread(
+                        target=execute_field_pattern,
+                        args=(instructions,),
+                        daemon=True,
+                    )
+                    pattern_thread.start()
                 elif isinstance(msg, dict):
                     translate_manual_instruction(msg)
                 else:
