@@ -101,39 +101,78 @@ spray_in1 = DigitalOutputDevice(20)  # IN1
 spray_in2 = DigitalOutputDevice(21)  # IN2
 spray_enable = PWMOutputDevice(25, frequency=50)  # ENA (PWM)
 
+# =============================================================================
+# ZS-X11H PWM PROTOCOL
+# 50Hz signal, pulse width 1000µs (full reverse) to 2000µs (full forward)
+# 1500µs = neutral/stop
+# gpiozero PWMOutputDevice.value is duty cycle 0.0–1.0
+# At 50Hz, period = 20000µs
+# So: value = pulse_width_us / 20000
+# =============================================================================
+
+FREQ = 50  # Hz
+PERIOD_US = 1_000_000 / FREQ  # 20000µs
+
+NEUTRAL_US = 1500
+MAX_FWD_US = 2000
+MAX_REV_US = 1000
+
+
+def speed_to_duty(speed: float, forward: bool) -> float:
+    """
+    Convert 0.0–1.0 speed to duty cycle for ZS-X11H.
+    forward=True  → pulse 1500µs to 2000µs
+    forward=False → pulse 1500µs to 1000µs
+    """
+    speed = max(0.0, min(1.0, speed))
+    if forward:
+        pulse_us = NEUTRAL_US + speed * (MAX_FWD_US - NEUTRAL_US)
+    else:
+        pulse_us = NEUTRAL_US - speed * (NEUTRAL_US - MAX_REV_US)
+    return pulse_us / PERIOD_US
+
+
+def neutral_duty() -> float:
+    return NEUTRAL_US / PERIOD_US  # 0.075
+
+
+# =============================================================================
+# UPDATED MOTOR FUNCTIONS
+# =============================================================================
+
 
 def motor1_forward(speed: float):
+    motor1_stop.on()
     motor1_dir.off()
-    motor1_stop.on()  # Enable motor
-    motor1_pwm.value = speed
+    motor1_pwm.value = speed_to_duty(speed, forward=True)
 
 
 def motor1_backward(speed: float):
+    motor1_stop.on()
     motor1_dir.on()
-    motor1_stop.on()  # Enable motor
-    motor1_pwm.value = speed
+    motor1_pwm.value = speed_to_duty(speed, forward=False)
 
 
 def motor1_halt():
-    motor1_pwm.value = 0
-    motor1_stop.off()  # Disable motor
+    motor1_pwm.value = neutral_duty()  # Send neutral, don't just cut signal
+    motor1_stop.off()
 
 
 def motor2_forward(speed: float):
+    motor2_stop.on()
     motor2_dir.off()
-    motor2_stop.on()  # Enable motor
-    motor2_pwm.value = speed
+    motor2_pwm.value = speed_to_duty(speed, forward=True)
 
 
 def motor2_backward(speed: float):
+    motor2_stop.on()
     motor2_dir.on()
-    motor2_stop.on()  # Enable motor
-    motor2_pwm.value = speed
+    motor2_pwm.value = speed_to_duty(speed, forward=False)
 
 
 def motor2_halt():
-    motor2_pwm.value = 0
-    motor2_stop.off()  # Disable motor
+    motor2_pwm.value = neutral_duty()
+    motor2_stop.off()
 
 
 def stop_all():
