@@ -47,7 +47,7 @@ WHEEL_DIAMETER_CM = 16.5  # 6.5 inch wheels = 16.5cm (use 20.3 for 8 inch)
 WHEEL_BASE_CM = 45.72  # Distance between wheel centers (18 inches = 45.72cm)
 
 # Motor speed settings (hoverboard motors are fast, keep these low for accuracy)
-DRIVE_SPEED = 0.3  # Speed for straight movement (0.0 - 1.0)
+DRIVE_SPEED = 0.4  # Speed for straight movement (0.0 - 1.0)
 TURN_SPEED = 0.25  # Speed for turning in place
 
 # Calibration values - TUNE THESE BY TESTING
@@ -580,23 +580,23 @@ def translate_manual_instruction(instruction: dict) -> bool:
     state = instruction.get("state")
 
     if command == "FORWARD" and state == "pressed":
-        motor1_backward(0.8)
-        motor2_forward(0.8)
+        motor1_backward(0.5)
+        motor2_forward(0.5)
 
     elif command == "BACK" and state == "pressed":
         logger.info("Move Backward")
-        motor1_forward(0.8)
-        motor2_backward(0.8)
+        motor1_forward(0.5)
+        motor2_backward(0.5)
 
     elif command == "LEFT" and state == "pressed":
         logger.info("Turn Left (Both CCW)")
-        motor1_forward(0.8)  # Left wheel counterclockwise
-        motor2_forward(0.8)  # Right wheel counterclockwise
+        motor1_forward(0.5)  # Left wheel counterclockwise
+        motor2_forward(0.5)  # Right wheel counterclockwise
 
     elif command == "RIGHT" and state == "pressed":
         logger.info("Turn Right (Both CW)")
-        motor1_backward(0.8)  # Left wheel clockwise
-        motor2_backward(0.8)  # Right wheel clockwise
+        motor1_backward(0.5)  # Left wheel clockwise
+        motor2_backward(0.5)  # Right wheel clockwise
 
     elif command == "SPRAY" and state == "pressed":
         logger.info("Spray On")
