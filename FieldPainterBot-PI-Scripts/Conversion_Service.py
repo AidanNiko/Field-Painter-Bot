@@ -47,7 +47,7 @@ WHEEL_DIAMETER_CM = 16.5  # 6.5 inch wheels = 16.5cm (use 20.3 for 8 inch)
 WHEEL_BASE_CM = 45.72  # Distance between wheel centers (18 inches = 45.72cm)
 
 # Motor speed settings (hoverboard motors are fast, keep these low for accuracy)
-DRIVE_SPEED = 0.4  # Speed for straight movement (0.0 - 1.0)
+DRIVE_SPEED = 0.1  # Speed for straight movement (0.0 - 1.0)
 TURN_SPEED = 0.25  # Speed for turning in place
 
 # Calibration values - TUNE THESE BY TESTING
@@ -84,14 +84,14 @@ MOTOR2_PWM_PIN = 13  # Hardware PWM1
 
 # Motor 1 - BLDC Driver (ZS-X11H)
 motor1_pwm = PWMOutputDevice(
-    MOTOR1_PWM_PIN, frequency=500
+    MOTOR1_PWM_PIN, frequency=50
 )  # P pin - Speed control (hardware PWM)
 motor1_dir = DigitalOutputDevice(27)  # DIR pin - Direction
 motor1_stop = DigitalOutputDevice(22, initial_value=False)  # STOP pin (LOW=run)
 
 # Motor 2 - BLDC Driver (ZS-X11H)
 motor2_pwm = PWMOutputDevice(
-    MOTOR2_PWM_PIN, frequency=500
+    MOTOR2_PWM_PIN, frequency=50
 )  # P pin - Speed control (hardware PWM)
 motor2_dir = DigitalOutputDevice(24)  # DIR pin - Direction
 motor2_stop = DigitalOutputDevice(5, initial_value=False)  # STOP pin (LOW=run)
