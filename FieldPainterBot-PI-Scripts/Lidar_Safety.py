@@ -22,7 +22,6 @@ DISTANCE_THRESHOLD = 350  # mm, adjust for your needs
 
 # State variables
 system_stopped = False
-distance_traveled = 0  # mm, update this with your movement logic
 
 
 # --- Distance Tracking ---
