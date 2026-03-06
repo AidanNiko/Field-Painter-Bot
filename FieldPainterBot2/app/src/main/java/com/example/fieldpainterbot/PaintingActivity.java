@@ -76,7 +76,7 @@ public class PaintingActivity extends AppCompatActivity {
 
         Button actionButton = findViewById(R.id.cancelButton);
 
-// Default behavior (Cancel → Dashboard)
+        // Default behavior (Cancel → Dashboard)
         Runnable defaultAction = () -> {
             viewModel.sendHaltCommand("QUIT");
             Intent intent = new Intent(PaintingActivity.this, DashboardActivity.class);

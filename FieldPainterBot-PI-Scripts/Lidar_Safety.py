@@ -54,7 +54,7 @@ def resume_system():
 
 
 # Set up RPLIDAR connection
-lidar = RPLidar(LIDAR_PORT, baudrate=256000)
+lidar = RPLidar(LIDAR_PORT, baudrate=115200)
 
 
 def get_lidar_distance():
