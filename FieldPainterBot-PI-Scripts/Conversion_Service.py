@@ -582,20 +582,35 @@ def get_instruction_progress():
 # =============================================================================
 
 
+def _burst_run(test_seconds: float, drive_func):
+    """Run drive_func with burst mode for test_seconds total elapsed time."""
+    elapsed = 0.0
+    step = 0.05
+    burst_phase = 0.0
+    burst_cycle = BURST_ON_TIME + BURST_OFF_TIME
+    while elapsed < test_seconds:
+        if BURST_ON_TIME > 0 and (burst_phase % burst_cycle) >= BURST_ON_TIME:
+            motor1_halt()
+            motor2_halt()
+        else:
+            drive_func()
+        time.sleep(step)
+        elapsed += step
+        burst_phase += step
+    motor1_halt()
+    motor2_halt()
+
+
 def calibration_test_distance(test_seconds: float = 3.0):
     """
     Run motors for a set time to measure distance traveled.
     Measure the distance, then: CM_PER_SECOND = distance_cm / test_seconds
     """
     logger.info(f"=== DISTANCE CALIBRATION TEST ===")
-    logger.info(f"Running motors at {DRIVE_SPEED} speed for {test_seconds}s")
+    logger.info(f"Running motors at {DRIVE_SPEED} speed for {test_seconds}s (burst mode: {'ON' if BURST_ON_TIME > 0 else 'OFF'})")
     logger.info("Measure the distance traveled, then update CM_PER_SECOND")
 
-    motor1_backward(DRIVE_SPEED)  # Left wheel clockwise
-    motor2_forward(DRIVE_SPEED)  # Right wheel counterclockwise
-    time.sleep(test_seconds)
-    motor1_halt()
-    motor2_halt()
+    _burst_run(test_seconds, lambda: (motor1_backward(DRIVE_SPEED), motor2_forward(DRIVE_SPEED)))
 
     logger.info(f"Done! CM_PER_SECOND = measured_distance_cm / {test_seconds}")
 
@@ -607,14 +622,10 @@ def calibration_test_rotation(rotations: int = 2):
     """
     test_seconds = 5.0
     logger.info(f"=== ROTATION CALIBRATION TEST ===")
-    logger.info(f"Spinning at {TURN_SPEED} speed for {test_seconds}s")
+    logger.info(f"Spinning at {TURN_SPEED} speed for {test_seconds}s (burst mode: {'ON' if BURST_ON_TIME > 0 else 'OFF'})")
     logger.info("Count full rotations, then update DEGREES_PER_SECOND")
 
-    motor1_forward(TURN_SPEED)
-    motor2_backward(TURN_SPEED)
-    time.sleep(test_seconds)
-    motor1_halt()
-    motor2_halt()
+    _burst_run(test_seconds, lambda: (motor1_forward(TURN_SPEED), motor2_backward(TURN_SPEED)))
 
     logger.info(f"Done! DEGREES_PER_SECOND = (rotations * 360) / {test_seconds}")
 
