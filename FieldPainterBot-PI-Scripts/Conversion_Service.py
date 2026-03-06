@@ -626,5 +626,13 @@ def translate_manual_instruction(instruction: dict) -> bool:
 
 
 if __name__ == "__main__":
+    STARTUP_DELAY = 60  # seconds to place rover before tests begin
+    logger.info(
+        f"Starting in {STARTUP_DELAY} seconds... Place the rover on the ground!"
+    )
+    for i in range(STARTUP_DELAY, 0, -1):
+        logger.info(f"{i}...")
+        time.sleep(1)
+    logger.info("Starting calibration!")
     calibration_test_distance()
     calibration_test_rotation()
