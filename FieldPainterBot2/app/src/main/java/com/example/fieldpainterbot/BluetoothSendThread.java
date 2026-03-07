@@ -25,7 +25,7 @@ public class BluetoothSendThread extends Thread {
         while (running) {
             try {
                 String msg = sendQueue.take();  // waits until message exists
-                outputStream.write(msg.getBytes());
+                outputStream.write((msg + "\n").getBytes());
                 outputStream.flush();
             } catch (Exception e) {
                 e.printStackTrace();

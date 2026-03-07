@@ -13,7 +13,9 @@ API_KEY = os.getenv("API_KEY")
 
 import certifi
 
-client = MongoClient(MONGO_URI, tls=True, tlsCAFile=certifi.where())
+client = MongoClient(
+    MONGO_URI, tls=True, tlsCAFile=certifi.where(), tlsAllowInvalidCertificates=True
+)
 
 try:
     client.admin.command("ping")
@@ -44,13 +46,13 @@ def get_data(
     if authorization != f"Bearer {API_KEY}":
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    # Check if collection exists
-    if collection_name not in db.list_collection_names():
-        raise HTTPException(status_code=404, detail="Collection not found")
-
-    # Fetch data from specified collection
+    # Fetch data from specified collection, sorted by Instruction Order
     collection = db[collection_name]
-    items = list(collection.find({}, {"_id": 0}))  # exclude _id field
+    items = list(collection.find({}, {"_id": 0}).sort("Instruction Order", 1))
+
+    if not items:
+        raise HTTPException(status_code=404, detail="Collection not found or empty")
+
     return {"items": items}
 
 
@@ -66,10 +68,10 @@ def create_data(
 
     # Insert documents (creates collection if it doesn't exist)
     result = db[collection_name].insert_many(documents)
-    
+
     return {
         "message": f"Inserted {len(result.inserted_ids)} documents",
-        "collection": collection_name
+        "collection": collection_name,
     }
 
 
@@ -77,4 +79,4 @@ def create_data(
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("Main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("Main:app", host="127.0.0.1", port=8001, reload=True)

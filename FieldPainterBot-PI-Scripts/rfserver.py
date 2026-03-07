@@ -88,49 +88,62 @@ def handle_client(client_sock):
     pattern_thread = None
 
     try:
+        buffer = ""
         while True:
             # receive commands
-            data = client_sock.recv(1024)
+            data = client_sock.recv(4096)
 
             if not data:
                 break
-            decoded_data = data.decode("utf-8").strip()
-            if decoded_data == "HALT":
-                set_system_paused(True)
-                logger.warning("HALT command received: system paused.")
-                continue
-            elif decoded_data == "RESUME":
-                set_system_paused(False)
-                logger.info("RESUME command received: system resumed.")
-                continue
-            elif decoded_data == "QUIT":
-                set_system_cancelled(True)
-                set_system_paused(False)  # Unblock any paused wait loop
-                if pattern_thread and pattern_thread.is_alive():
-                    pattern_thread.join(timeout=5)
-                logger.warning("QUIT command received: pattern execution cancelled.")
-                continue
-            logger.info("Received %s", decoded_data)
-            try:
-                msg = json.loads(decoded_data)
-                if isinstance(msg, dict) and "items" in msg:
-                    # Run field pattern in a thread so HALT can be received mid-execution
+
+            buffer += data.decode("utf-8")
+
+            # Process all complete messages in the buffer (split by newline)
+            while "\n" in buffer:
+                decoded_data, buffer = buffer.split("\n", 1)
+                decoded_data = decoded_data.strip()
+                if not decoded_data:
+                    continue
+                if decoded_data == "HALT":
+                    set_system_paused(True)
+                    logger.warning("HALT command received: system paused.")
+                    continue
+                elif decoded_data == "RESUME":
+                    set_system_paused(False)
+                    logger.info("RESUME command received: system resumed.")
+                    continue
+                elif decoded_data == "QUIT":
+                    set_system_cancelled(True)
+                    set_system_paused(False)  # Unblock any paused wait loop
                     if pattern_thread and pattern_thread.is_alive():
-                        logger.warning("Pattern already running, ignoring new request.")
-                        continue
-                    instructions = Convert_To_Array(msg)
-                    pattern_thread = threading.Thread(
-                        target=execute_field_pattern,
-                        args=(instructions,),
-                        daemon=True,
+                        pattern_thread.join(timeout=5)
+                    logger.warning(
+                        "QUIT command received: pattern execution cancelled."
                     )
-                    pattern_thread.start()
-                elif isinstance(msg, dict):
-                    translate_manual_instruction(msg)
-                else:
-                    logger.warning("Unknown command format")
-            except Exception as e:
-                logger.error("Error parsing command: %s", e)
+                    continue
+                logger.info("Received %s", decoded_data)
+                try:
+                    msg = json.loads(decoded_data)
+                    if isinstance(msg, dict) and "items" in msg:
+                        # Run field pattern in a thread so HALT can be received mid-execution
+                        if pattern_thread and pattern_thread.is_alive():
+                            logger.warning(
+                                "Pattern already running, ignoring new request."
+                            )
+                            continue
+                        instructions = Convert_To_Array(msg)
+                        pattern_thread = threading.Thread(
+                            target=execute_field_pattern,
+                            args=(instructions,),
+                            daemon=True,
+                        )
+                        pattern_thread.start()
+                    elif isinstance(msg, dict):
+                        translate_manual_instruction(msg)
+                    else:
+                        logger.warning("Unknown command format")
+                except Exception as e:
+                    logger.error("Error parsing command: %s", e)
     except OSError:
         raise
     finally:
