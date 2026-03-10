@@ -5,7 +5,6 @@ total_instructions = 0  # Tracks the total number of instructions
 
 import time
 import math
-import threading
 from gpiozero import PWMOutputDevice, DigitalOutputDevice
 from distance_utils import update_distance_traveled
 
@@ -50,11 +49,6 @@ WHEEL_BASE_CM = 45.72  # Distance between wheel centers (18 inches = 45.72cm)
 # Motor speed settings
 DRIVE_SPEED = 0.5  # Duty cycle sent when motors are active (0.0 - 1.0)
 TURN_SPEED = 0.5  # Duty cycle for turning
-
-# Burst mode: pulse motors on/off to reduce effective average speed
-# BURST_ON_TIME > 0 enables burst mode. Set to 0 to run continuously.
-BURST_ON_TIME = 0.15  # seconds motors run per burst cycle (tune this)
-BURST_OFF_TIME = 0.25  # seconds motors are halted per burst cycle (tune this)
 
 # Calibration values - TUNE THESE BY TESTING
 # Run calibration_test() to measure actual values
@@ -150,48 +144,6 @@ def stop_all():
 
 
 # =============================================================================
-# MANUAL BURST CONTROL
-# =============================================================================
-
-_manual_burst_stop = threading.Event()
-_manual_burst_thread = None
-
-
-def _run_manual_burst(drive_func):
-    """Background thread: pulses motors on/off for manual burst speed control."""
-    while not _manual_burst_stop.is_set():
-        drive_func()
-        _manual_burst_stop.wait(BURST_ON_TIME)
-        if _manual_burst_stop.is_set():
-            break
-        motor1_halt()
-        motor2_halt()
-        _manual_burst_stop.wait(BURST_OFF_TIME)
-    motor1_halt()
-    motor2_halt()
-
-
-def _start_manual_burst(drive_func):
-    global _manual_burst_thread, _manual_burst_stop
-    _stop_manual_burst()
-    _manual_burst_stop.clear()
-    _manual_burst_thread = threading.Thread(
-        target=_run_manual_burst, args=(drive_func,), daemon=True
-    )
-    _manual_burst_thread.start()
-
-
-def _stop_manual_burst():
-    global _manual_burst_thread
-    _manual_burst_stop.set()
-    if _manual_burst_thread and _manual_burst_thread.is_alive():
-        _manual_burst_thread.join(timeout=1.0)
-    _manual_burst_thread = None
-    motor1_halt()
-    motor2_halt()
-
-
-# =============================================================================
 # AUTOMATED INSTRUCTION HANDLERS - ADD/MODIFY HANDLERS HERE
 # =============================================================================
 
@@ -211,8 +163,6 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
     step = 0.05
     initial_yaw = get_yaw()
     Kp = 0.05
-    burst_phase = 0.0
-    burst_cycle = BURST_ON_TIME + BURST_OFF_TIME
     try:
         while moved_time < total_duration:
             if system_paused:
@@ -228,23 +178,16 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
                 logger.info("Resuming walk...")
                 if paint:
                     handle_spray_on()
-                burst_phase = 0.0
             # Yaw correction
             current_yaw = get_yaw()
             error = current_yaw - initial_yaw
             correction = Kp * error
             left_speed = max(0.0, min(1.0, DRIVE_SPEED - correction))
             right_speed = max(0.0, min(1.0, DRIVE_SPEED + correction))
-            # Burst mode
-            if BURST_ON_TIME > 0 and (burst_phase % burst_cycle) >= BURST_ON_TIME:
-                motor1_halt()
-                motor2_halt()
-            else:
-                motor1_backward(left_speed)
-                motor2_forward(right_speed)
+            motor1_backward(left_speed)
+            motor2_forward(right_speed)
             time.sleep(step)
             moved_time += step
-            burst_phase += step
             update_distance_traveled(step, CM_PER_SECOND)
         motor1_halt()
         motor2_halt()
@@ -271,8 +214,6 @@ def handle_turn(quantity: float, paint: bool = False, **kwargs) -> bool:
 
     turned_time = 0.0
     step = 0.05
-    burst_phase = 0.0
-    burst_cycle = BURST_ON_TIME + BURST_OFF_TIME
 
     def drive_turn():
         if quantity >= 0:
@@ -297,16 +238,9 @@ def handle_turn(quantity: float, paint: bool = False, **kwargs) -> bool:
                 logger.info("Resuming turn...")
                 if paint:
                     handle_spray_on()
-                burst_phase = 0.0
-            # Burst mode
-            if BURST_ON_TIME > 0 and (burst_phase % burst_cycle) >= BURST_ON_TIME:
-                motor1_halt()
-                motor2_halt()
-            else:
-                drive_turn()
+            drive_turn()
             time.sleep(step)
             turned_time += step
-            burst_phase += step
         motor1_halt()
         motor2_halt()
         if paint:
@@ -586,25 +520,6 @@ def get_instruction_progress():
 # =============================================================================
 
 
-def _burst_run(test_seconds: float, drive_func):
-    """Run drive_func with burst mode for test_seconds total elapsed time."""
-    elapsed = 0.0
-    step = 0.05
-    burst_phase = 0.0
-    burst_cycle = BURST_ON_TIME + BURST_OFF_TIME
-    while elapsed < test_seconds:
-        if BURST_ON_TIME > 0 and (burst_phase % burst_cycle) >= BURST_ON_TIME:
-            motor1_halt()
-            motor2_halt()
-        else:
-            drive_func()
-        time.sleep(step)
-        elapsed += step
-        burst_phase += step
-    motor1_halt()
-    motor2_halt()
-
-
 def calibration_test_distance(test_seconds: float = 3.0):
     """
     Run motors for a set time to measure distance traveled (PWM only, no DIR or STOP).
@@ -623,21 +538,20 @@ def calibration_test_distance(test_seconds: float = 3.0):
     logger.info(f"Done! CM_PER_SECOND = measured_distance_cm / {test_seconds}")
 
 
-def calibration_test_rotation(rotations: int = 2):
+def calibration_test_rotation(test_seconds: float = 5.0):
     """
     Spin the robot to measure rotation speed.
     Count full rotations, then: DEGREES_PER_SECOND = (rotations * 360) / time
     """
-    test_seconds = 5.0
     logger.info(f"=== ROTATION CALIBRATION TEST ===")
-    logger.info(
-        f"Spinning at {TURN_SPEED} speed for {test_seconds}s (burst mode: {'ON' if BURST_ON_TIME > 0 else 'OFF'})"
-    )
+    logger.info(f"Spinning at {TURN_SPEED} speed for {test_seconds}s")
     logger.info("Count full rotations, then update DEGREES_PER_SECOND")
 
-    _burst_run(
-        test_seconds, lambda: (motor1_forward(TURN_SPEED), motor2_backward(TURN_SPEED))
-    )
+    motor1_pwm.value = TURN_SPEED
+    motor2_pwm.value = TURN_SPEED
+    time.sleep(test_seconds)
+    motor1_pwm.value = 0
+    motor2_pwm.value = 0
 
     logger.info(f"Done! DEGREES_PER_SECOND = (rotations * 360) / {test_seconds}")
 
@@ -654,24 +568,20 @@ def translate_manual_instruction(instruction: dict) -> bool:
     if state == "pressed":
         if command == "FORWARD":
             logger.info("Move Forward")
-            _start_manual_burst(
-                lambda: (motor1_backward(DRIVE_SPEED), motor2_forward(DRIVE_SPEED))
-            )
+            motor1_backward(DRIVE_SPEED)
+            motor2_forward(DRIVE_SPEED)
         elif command == "BACK":
             logger.info("Move Backward")
-            _start_manual_burst(
-                lambda: (motor1_forward(DRIVE_SPEED), motor2_backward(DRIVE_SPEED))
-            )
+            motor1_forward(DRIVE_SPEED)
+            motor2_backward(DRIVE_SPEED)
         elif command == "LEFT":
             logger.info("Turn Left")
-            _start_manual_burst(
-                lambda: (motor1_forward(DRIVE_SPEED), motor2_forward(DRIVE_SPEED))
-            )
+            motor1_forward(DRIVE_SPEED)
+            motor2_forward(DRIVE_SPEED)
         elif command == "RIGHT":
             logger.info("Turn Right")
-            _start_manual_burst(
-                lambda: (motor1_backward(DRIVE_SPEED), motor2_backward(DRIVE_SPEED))
-            )
+            motor1_backward(DRIVE_SPEED)
+            motor2_backward(DRIVE_SPEED)
         elif command == "SPRAY":
             logger.info("Spray On")
             spray_in1.on()
@@ -693,7 +603,8 @@ def translate_manual_instruction(instruction: dict) -> bool:
             spray_enable.value = 0
         else:
             logger.info("Stop")
-            _stop_manual_burst()
+            motor1_halt()
+            motor2_halt()
     else:
         logger.warning(f"Invalid state: {state}")
         return False
