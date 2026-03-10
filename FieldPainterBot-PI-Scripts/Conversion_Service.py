@@ -49,11 +49,11 @@ WHEEL_BASE_CM = 45.72  # Distance between wheel centers (18 inches = 45.72cm)
 
 # Motor speed settings
 DRIVE_SPEED = 0.5  # Duty cycle sent when motors are active (0.0 - 1.0)
-TURN_SPEED = 0.5   # Duty cycle for turning
+TURN_SPEED = 0.5  # Duty cycle for turning
 
 # Burst mode: pulse motors on/off to reduce effective average speed
 # BURST_ON_TIME > 0 enables burst mode. Set to 0 to run continuously.
-BURST_ON_TIME = 0.15   # seconds motors run per burst cycle (tune this)
+BURST_ON_TIME = 0.15  # seconds motors run per burst cycle (tune this)
 BURST_OFF_TIME = 0.25  # seconds motors are halted per burst cycle (tune this)
 
 # Calibration values - TUNE THESE BY TESTING
@@ -216,7 +216,9 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
     try:
         while moved_time < total_duration:
             if system_paused:
-                logger.warning(f"Paused at {moved_time * CM_PER_SECOND:.1f}cm/{quantity}cm")
+                logger.warning(
+                    f"Paused at {moved_time * CM_PER_SECOND:.1f}cm/{quantity}cm"
+                )
                 motor1_halt()
                 motor2_halt()
                 if paint:
@@ -283,7 +285,9 @@ def handle_turn(quantity: float, paint: bool = False, **kwargs) -> bool:
     try:
         while turned_time < total_duration:
             if system_paused:
-                logger.warning(f"Paused at {turned_time * DEGREES_PER_SECOND:.1f}°/{abs(quantity)}°")
+                logger.warning(
+                    f"Paused at {turned_time * DEGREES_PER_SECOND:.1f}°/{abs(quantity)}°"
+                )
                 motor1_halt()
                 motor2_halt()
                 if paint:
@@ -603,14 +607,18 @@ def _burst_run(test_seconds: float, drive_func):
 
 def calibration_test_distance(test_seconds: float = 3.0):
     """
-    Run motors for a set time to measure distance traveled.
+    Run motors for a set time to measure distance traveled (PWM only, no DIR or STOP).
     Measure the distance, then: CM_PER_SECOND = distance_cm / test_seconds
     """
     logger.info(f"=== DISTANCE CALIBRATION TEST ===")
-    logger.info(f"Running motors at {DRIVE_SPEED} speed for {test_seconds}s (burst mode: {'ON' if BURST_ON_TIME > 0 else 'OFF'})")
+    logger.info(f"Running PWM at {DRIVE_SPEED} for {test_seconds}s")
     logger.info("Measure the distance traveled, then update CM_PER_SECOND")
 
-    _burst_run(test_seconds, lambda: (motor1_backward(DRIVE_SPEED), motor2_forward(DRIVE_SPEED)))
+    motor1_pwm.value = DRIVE_SPEED
+    motor2_pwm.value = DRIVE_SPEED
+    time.sleep(test_seconds)
+    motor1_pwm.value = 0
+    motor2_pwm.value = 0
 
     logger.info(f"Done! CM_PER_SECOND = measured_distance_cm / {test_seconds}")
 
@@ -622,10 +630,14 @@ def calibration_test_rotation(rotations: int = 2):
     """
     test_seconds = 5.0
     logger.info(f"=== ROTATION CALIBRATION TEST ===")
-    logger.info(f"Spinning at {TURN_SPEED} speed for {test_seconds}s (burst mode: {'ON' if BURST_ON_TIME > 0 else 'OFF'})")
+    logger.info(
+        f"Spinning at {TURN_SPEED} speed for {test_seconds}s (burst mode: {'ON' if BURST_ON_TIME > 0 else 'OFF'})"
+    )
     logger.info("Count full rotations, then update DEGREES_PER_SECOND")
 
-    _burst_run(test_seconds, lambda: (motor1_forward(TURN_SPEED), motor2_backward(TURN_SPEED)))
+    _burst_run(
+        test_seconds, lambda: (motor1_forward(TURN_SPEED), motor2_backward(TURN_SPEED))
+    )
 
     logger.info(f"Done! DEGREES_PER_SECOND = (rotations * 360) / {test_seconds}")
 
@@ -642,16 +654,24 @@ def translate_manual_instruction(instruction: dict) -> bool:
     if state == "pressed":
         if command == "FORWARD":
             logger.info("Move Forward")
-            _start_manual_burst(lambda: (motor1_backward(DRIVE_SPEED), motor2_forward(DRIVE_SPEED)))
+            _start_manual_burst(
+                lambda: (motor1_backward(DRIVE_SPEED), motor2_forward(DRIVE_SPEED))
+            )
         elif command == "BACK":
             logger.info("Move Backward")
-            _start_manual_burst(lambda: (motor1_forward(DRIVE_SPEED), motor2_backward(DRIVE_SPEED)))
+            _start_manual_burst(
+                lambda: (motor1_forward(DRIVE_SPEED), motor2_backward(DRIVE_SPEED))
+            )
         elif command == "LEFT":
             logger.info("Turn Left")
-            _start_manual_burst(lambda: (motor1_forward(DRIVE_SPEED), motor2_forward(DRIVE_SPEED)))
+            _start_manual_burst(
+                lambda: (motor1_forward(DRIVE_SPEED), motor2_forward(DRIVE_SPEED))
+            )
         elif command == "RIGHT":
             logger.info("Turn Right")
-            _start_manual_burst(lambda: (motor1_backward(DRIVE_SPEED), motor2_backward(DRIVE_SPEED)))
+            _start_manual_burst(
+                lambda: (motor1_backward(DRIVE_SPEED), motor2_backward(DRIVE_SPEED))
+            )
         elif command == "SPRAY":
             logger.info("Spray On")
             spray_in1.on()
@@ -691,4 +711,4 @@ if __name__ == "__main__":
         time.sleep(1)
     logger.info("Starting calibration!")
     calibration_test_distance()
-    calibration_test_rotation()
+    # calibration_test_rotation()
