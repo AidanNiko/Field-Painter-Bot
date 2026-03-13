@@ -12,9 +12,15 @@ sensor = mpu6050(0x68)
 # MOUNTING CORRECTION - adjust these if your sensor is not oriented correctly
 # YAW_AXIS: which gyro axis represents your robot's rotation ('x', 'y', or 'z')
 # YAW_SIGN: 1 for normal, -1 to flip the direction
+#
+# Current mounting: X → left of rover, Y → back of rover
+# Z (= X × Y = left × back) therefore points UP — yaw axis is correct.
+# However, positive Z rotation in this frame goes from left toward back,
+# which is CLOCKWISE viewed from above (rover turning right).
+# Negate so that a left/CCW turn gives a positive yaw increment.
 # =============================================================================
 YAW_AXIS = 'z'
-YAW_SIGN = 1
+YAW_SIGN = -1
 
 def read_gyro_accel():
     accel_data = sensor.get_accel_data()

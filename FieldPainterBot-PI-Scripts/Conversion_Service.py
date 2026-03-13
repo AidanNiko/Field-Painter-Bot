@@ -387,9 +387,13 @@ def Convert_To_Array(data: dict) -> list:
         logger.info("Available keys in item: %s", item.keys())
 
         # Ensure the keys are being accessed correctly
-        instruction_order_key = INSTRUCTION_FIELDS.get("Instruction Order", "Instruction Order")
+        instruction_order_key = INSTRUCTION_FIELDS.get(
+            "Instruction Order", "Instruction Order"
+        )
         quantity_key = INSTRUCTION_FIELDS.get("Quantity", "Quantity")
-        movement_type_key = INSTRUCTION_FIELDS.get("Type of Movement", "Type of Movement")
+        movement_type_key = INSTRUCTION_FIELDS.get(
+            "Type of Movement", "Type of Movement"
+        )
         paint_key = INSTRUCTION_FIELDS.get("Paint", "Paint")
 
         order = item.get(instruction_order_key, 0)
@@ -398,10 +402,14 @@ def Convert_To_Array(data: dict) -> list:
         paint = item.get(paint_key, False)
 
         if move_type:
+            qty = float(quantity) if quantity else 0.0
+            # Convert ft -> cm for distance-based instructions; rotation stays in degrees
+            if move_type != "rotation":
+                qty = qty * 30.48
             instructions.append(
                 {
                     "order": int(order) if order else 0,
-                    "quantity": float(quantity) if quantity else 0,
+                    "quantity": qty,
                     "type": move_type,
                     "paint": bool(paint),
                 }
@@ -410,7 +418,6 @@ def Convert_To_Array(data: dict) -> list:
     # Sort by order
     instructions.sort(key=lambda x: x["order"])
     return instructions
-
 
 
 def execute_instruction(instruction: dict) -> bool:
@@ -523,33 +530,36 @@ def get_instruction_progress():
 
 def calibration_test_distance(test_seconds: float = 3.0):
     """
-    Run motors for a set time to measure distance traveled (PWM only, no DIR or STOP).
-    Measure the distance, then: CM_PER_SECOND = distance_cm / test_seconds
+    Drive both motors forward for a set time to measure distance traveled.
+    Measure the distance in cm, then set: CM_PER_SECOND = distance_cm / test_seconds
     """
     logger.info(f"=== DISTANCE CALIBRATION TEST ===")
-    logger.info(f"Running PWM at {DRIVE_SPEED} for {test_seconds}s")
-    logger.info("Measure the distance traveled, then update CM_PER_SECOND")
+    logger.info(f"Driving forward at DRIVE_SPEED={DRIVE_SPEED} for {test_seconds}s")
+    logger.info("Measure the distance traveled in cm, then update CM_PER_SECOND")
 
-    motor1_pwm.value = DRIVE_SPEED
-    motor1_dir.on()
+    motor1_backward(DRIVE_SPEED)
+    motor2_forward(DRIVE_SPEED)
     time.sleep(test_seconds)
-    motor1_pwm.value = 0
+    motor1_halt()
+    motor2_halt()
 
     logger.info(f"Done! CM_PER_SECOND = measured_distance_cm / {test_seconds}")
 
 
 def calibration_test_rotation(test_seconds: float = 5.0):
     """
-    Spin the robot to measure rotation speed.
-    Count full rotations, then: DEGREES_PER_SECOND = (rotations * 360) / time
+    Spin the robot CCW in place for a set time to measure rotation speed.
+    Count full rotations, then set: DEGREES_PER_SECOND = (rotations * 360) / test_seconds
     """
     logger.info(f"=== ROTATION CALIBRATION TEST ===")
-    logger.info(f"Spinning at {TURN_SPEED} speed for {test_seconds}s")
+    logger.info(f"Spinning CCW at TURN_SPEED={TURN_SPEED} for {test_seconds}s")
     logger.info("Count full rotations, then update DEGREES_PER_SECOND")
 
-    motor2_pwm.value = TURN_SPEED
+    motor1_forward(TURN_SPEED)
+    motor2_forward(TURN_SPEED)
     time.sleep(test_seconds)
-    motor2_pwm.value = 0
+    motor1_halt()
+    motor2_halt()
 
     logger.info(f"Done! DEGREES_PER_SECOND = (rotations * 360) / {test_seconds}")
 
@@ -611,7 +621,7 @@ def translate_manual_instruction(instruction: dict) -> bool:
 
 
 if __name__ == "__main__":
-    STARTUP_DELAY = 2  # seconds to place rover before tests begin
+    STARTUP_DELAY = 60  # seconds to place rover before tests begin
     logger.info(
         f"Starting in {STARTUP_DELAY} seconds... Place the rover on the ground!"
     )
