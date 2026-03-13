@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/genericbg">
@@ -106,17 +107,20 @@
             app:layout_constraintEnd_toStartOf="@id/btnRight" />
 
         <!-- Right -->
+
+        <!-- Down -->
+
         <com.example.fieldpainterbot.ClickableImageView
             android:id="@+id/btnRight"
             android:layout_width="90dp"
             android:layout_height="90dp"
             android:background="@drawable/triangle_right_rounded"
-            app:layout_constraintTop_toBottomOf="@id/btnForward"
             app:layout_constraintBottom_toTopOf="@id/btnBack"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/btnLeft"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/btnForward"
+            app:layout_constraintVertical_bias="1.0" />
 
-        <!-- Down -->
         <com.example.fieldpainterbot.ClickableImageView
             android:id="@+id/btnBack"
             android:layout_width="90dp"
@@ -126,21 +130,25 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="@id/btnLeft"
             app:layout_constraintEnd_toEndOf="@id/btnRight" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
     <!-- Spray 50% -->
+
+    <!-- Footer -->
     <LinearLayout
         android:id="@+id/sprayArea"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:orientation="vertical"
         android:gravity="center"
+        android:orientation="vertical"
         android:padding="16dp"
-        app:layout_constraintStart_toEndOf="@id/directionControls"
+        app:layout_constraintBottom_toBottomOf="@id/directionControls"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@id/directionControls"
         app:layout_constraintTop_toTopOf="@id/directionControls"
-        app:layout_constraintBottom_toBottomOf="@id/directionControls">
+        app:layout_constraintVertical_bias="1.0">
 
         <com.example.fieldpainterbot.ClickableImageView
             android:id="@+id/sprayButton"
@@ -148,9 +156,21 @@
             android:layout_height="175dp"
             android:background="@drawable/circle_button"
             android:tooltipText="Double-tap to toggle auto spray" />
+
+        <ImageButton
+            android:id="@+id/pauseResumeButton"
+            android:layout_width="139dp"
+            android:layout_height="116dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="fitCenter"
+
+            android:src="@drawable/baseline_pause_circle_outline_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnBack" />
     </LinearLayout>
 
-    <!-- Footer -->
     <LinearLayout
         android:id="@+id/footer"
         android:layout_width="0dp"

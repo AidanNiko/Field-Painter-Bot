@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -21,6 +22,7 @@ import androidx.lifecycle.ViewModelStoreOwner;
 
 public class ManualControlActivity extends AppCompatActivity {
     private ImageView batteryIcon;
+    private boolean isPaused = false;
     private TextView percentLevel;
 
     private ImageView sprayIcon;
@@ -178,6 +180,12 @@ public class ManualControlActivity extends AppCompatActivity {
 
         View.OnTouchListener controlTouch = (v, event) -> {
 
+            // ---0) Pause check ---
+            if (isPaused) {
+                Toast.makeText(this, "Robot Paused", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
             // --- 1) Check Bluetooth connection FIRST ---
             Log.d("Test manual", "Status: "+cachedStatus);
             if (cachedStatus != ConnectionStatus.CONNECTED) {
@@ -215,6 +223,25 @@ public class ManualControlActivity extends AppCompatActivity {
         BackBtn.setOnTouchListener(controlTouch);
         RightBtn.setOnTouchListener(controlTouch);
         SprayBtn.setOnTouchListener(controlTouch);
+
+        //Emergency stop button
+
+        ImageButton pauseResumeButton = findViewById(R.id.pauseResumeButton);
+
+        pauseResumeButton.setOnClickListener(v -> {
+
+            if(isPaused){
+                pauseResumeButton.setImageResource(R.drawable.baseline_pause_circle_outline_24);
+                isPaused = false;
+                viewModel.sendHaltCommand("RESUME");
+            }
+            else{
+                pauseResumeButton.setImageResource(R.drawable.outline_arrow_drop_down_circle_24);
+                isPaused = true;
+                viewModel.sendHaltCommand("HALT");
+            }
+
+        });
 
 
 
