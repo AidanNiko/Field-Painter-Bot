@@ -51,8 +51,8 @@ def lidar_safety_loop():
                     continue
 
                 min_distance = min(front_distances)
-                logger.info(f"LIDAR min front distance: {min_distance:.1f} mm")
-                print(f"LIDAR min front distance: {min_distance:.1f} mm")
+                #logger.info(f"LIDAR min front distance: {min_distance:.1f} mm")
+                #print(f"LIDAR min front distance: {min_distance:.1f} mm")
 
                 if min_distance < DISTANCE_THRESHOLD:
                     if not system_stopped:
@@ -67,7 +67,7 @@ def lidar_safety_loop():
 
         except Exception as e:
             logger.error(f"LIDAR error: {e} — retrying in 5s...")
-            print(f"LIDAR error: {e} — retrying in 5s...")
+            print(f"LIDAR error: {e} - retrying in 5s...")
 
         finally:
             if lidar:

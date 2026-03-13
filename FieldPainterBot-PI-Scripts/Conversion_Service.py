@@ -47,7 +47,7 @@ WHEEL_DIAMETER_CM = 16.5  # 6.5 inch wheels = 16.5cm (use 20.3 for 8 inch)
 WHEEL_BASE_CM = 45.72  # Distance between wheel centers (18 inches = 45.72cm)
 
 # Motor speed settings
-DRIVE_SPEED = 0.5  # Duty cycle sent when motors are active (0.0 - 1.0)
+DRIVE_SPEED = 0.2  # Duty cycle sent when motors are active (0.0 - 1.0)
 TURN_SPEED = 0.5  # Duty cycle for turning
 
 # Calibration values - TUNE THESE BY TESTING
@@ -87,14 +87,12 @@ motor1_pwm = PWMOutputDevice(
     MOTOR1_PWM_PIN, frequency=50
 )  # P pin - Speed control (hardware PWM)
 motor1_dir = DigitalOutputDevice(27)  # DIR pin - Direction
-motor1_stop = DigitalOutputDevice(22, initial_value=False)  # STOP pin (LOW=run)
 
 # Motor 2 - BLDC Driver (ZS-X11H)
 motor2_pwm = PWMOutputDevice(
     MOTOR2_PWM_PIN, frequency=50
 )  # P pin - Speed control (hardware PWM)
 motor2_dir = DigitalOutputDevice(24)  # DIR pin - Direction
-motor2_stop = DigitalOutputDevice(5, initial_value=False)  # STOP pin (LOW=run)
 
 # Spray actuator via L298N (software PWM is fine for spray)
 spray_in1 = DigitalOutputDevice(20)  # IN1
@@ -104,36 +102,30 @@ spray_enable = PWMOutputDevice(25, frequency=50)  # ENA (PWM)
 
 def motor1_forward(speed: float):
     motor1_dir.off()
-    motor1_stop.on()  # Enable motor
     motor1_pwm.value = speed
 
 
 def motor1_backward(speed: float):
     motor1_dir.on()
-    motor1_stop.on()  # Enable motor
     motor1_pwm.value = speed
 
 
 def motor1_halt():
     motor1_pwm.value = 0
-    motor1_stop.off()  # Disable motor
 
 
 def motor2_forward(speed: float):
     motor2_dir.off()
-    motor2_stop.on()  # Enable motor
     motor2_pwm.value = speed
 
 
 def motor2_backward(speed: float):
     motor2_dir.on()
-    motor2_stop.on()  # Enable motor
     motor2_pwm.value = speed
 
 
 def motor2_halt():
     motor2_pwm.value = 0
-    motor2_stop.off()  # Disable motor
 
 
 def stop_all():
@@ -391,11 +383,19 @@ def Convert_To_Array(data: dict) -> list:
         if not item:  # Skip empty dicts
             continue
 
-        # Extract fields using configurable field names
-        order = item.get(INSTRUCTION_FIELDS["Instruction Order"], 0)
-        quantity = item.get(INSTRUCTION_FIELDS["Quantity"], 0)
-        move_type = item.get(INSTRUCTION_FIELDS["Type of Movement"], "").lower()
-        paint = item.get(INSTRUCTION_FIELDS["Paint"], False)
+        # Debug: Print available keys
+        logger.info("Available keys in item: %s", item.keys())
+
+        # Ensure the keys are being accessed correctly
+        instruction_order_key = INSTRUCTION_FIELDS.get("Instruction Order", "Instruction Order")
+        quantity_key = INSTRUCTION_FIELDS.get("Quantity", "Quantity")
+        movement_type_key = INSTRUCTION_FIELDS.get("Type of Movement", "Type of Movement")
+        paint_key = INSTRUCTION_FIELDS.get("Paint", "Paint")
+
+        order = item.get(instruction_order_key, 0)
+        quantity = item.get(quantity_key, 0)
+        move_type = item.get(movement_type_key, "").lower()
+        paint = item.get(paint_key, False)
 
         if move_type:
             instructions.append(
@@ -410,6 +410,7 @@ def Convert_To_Array(data: dict) -> list:
     # Sort by order
     instructions.sort(key=lambda x: x["order"])
     return instructions
+
 
 
 def execute_instruction(instruction: dict) -> bool:
@@ -530,10 +531,9 @@ def calibration_test_distance(test_seconds: float = 3.0):
     logger.info("Measure the distance traveled, then update CM_PER_SECOND")
 
     motor1_pwm.value = DRIVE_SPEED
-    motor2_pwm.value = DRIVE_SPEED
+    motor1_dir.on()
     time.sleep(test_seconds)
     motor1_pwm.value = 0
-    motor2_pwm.value = 0
 
     logger.info(f"Done! CM_PER_SECOND = measured_distance_cm / {test_seconds}")
 
@@ -547,10 +547,8 @@ def calibration_test_rotation(test_seconds: float = 5.0):
     logger.info(f"Spinning at {TURN_SPEED} speed for {test_seconds}s")
     logger.info("Count full rotations, then update DEGREES_PER_SECOND")
 
-    motor1_pwm.value = TURN_SPEED
     motor2_pwm.value = TURN_SPEED
     time.sleep(test_seconds)
-    motor1_pwm.value = 0
     motor2_pwm.value = 0
 
     logger.info(f"Done! DEGREES_PER_SECOND = (rotations * 360) / {test_seconds}")
@@ -613,7 +611,7 @@ def translate_manual_instruction(instruction: dict) -> bool:
 
 
 if __name__ == "__main__":
-    STARTUP_DELAY = 60  # seconds to place rover before tests begin
+    STARTUP_DELAY = 2  # seconds to place rover before tests begin
     logger.info(
         f"Starting in {STARTUP_DELAY} seconds... Place the rover on the ground!"
     )

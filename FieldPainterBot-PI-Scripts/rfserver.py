@@ -122,22 +122,31 @@ def handle_client(client_sock):
                     )
                     continue
                 logger.info("Received %s", decoded_data)
+                valid_json = decoded_data.replace("'", '"')
+                logger.info("Formatted message for JSON: %s", valid_json)
                 try:
                     msg = json.loads(decoded_data)
+                    logger.info("step1 %s", msg)
+                    
                     if isinstance(msg, dict) and "items" in msg:
                         # Run field pattern in a thread so HALT can be received mid-execution
+                        logger.info("step2")
                         if pattern_thread and pattern_thread.is_alive():
                             logger.warning(
                                 "Pattern already running, ignoring new request."
                             )
                             continue
+                        logger.info("step3")
+                        print(msg)
                         instructions = Convert_To_Array(msg)
+                        
                         pattern_thread = threading.Thread(
                             target=execute_field_pattern,
                             args=(instructions,),
                             daemon=True,
                         )
                         pattern_thread.start()
+                        logger.info("step4")
                     elif isinstance(msg, dict):
                         translate_manual_instruction(msg)
                     else:
@@ -153,6 +162,7 @@ def handle_client(client_sock):
 
 def main():
     # Start LIDAR safety thread
+    #Tagged out the lidar safety as it breaks the code
     start_lidar_safety()
     server_sock = setup_bluetooth_server()
     try:
