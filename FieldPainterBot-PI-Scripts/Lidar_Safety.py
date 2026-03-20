@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 LIDAR_PORT = "/dev/ttyUSB0"
-DISTANCE_THRESHOLD = 350  # mm
+DISTANCE_THRESHOLD = 450  # mm
 
 system_stopped = False
 
@@ -40,7 +40,13 @@ def lidar_safety_loop():
             logger.info("LIDAR connected. Starting scan loop.")
 
             # ✅ One persistent iterator for the lifetime of the connection
+            last_processed = 0
             for scan in lidar.iter_scans(max_buf_meas=500):
+                now = time.time()
+                if now - last_processed < 0.05:
+                    continue  # Skip this scan but keep consuming from buffer
+                last_processed = now
+
                 front_distances = []
                 for _, angle, distance in scan:
                     angle = angle % 360
@@ -51,8 +57,8 @@ def lidar_safety_loop():
                     continue
 
                 min_distance = min(front_distances)
-                #logger.info(f"LIDAR min front distance: {min_distance:.1f} mm")
-                #print(f"LIDAR min front distance: {min_distance:.1f} mm")
+                # logger.info(f"LIDAR min front distance: {min_distance:.1f} mm")
+                # print(f"LIDAR min front distance: {min_distance:.1f} mm")
 
                 if min_distance < DISTANCE_THRESHOLD:
                     if not system_stopped:
@@ -62,8 +68,6 @@ def lidar_safety_loop():
                     if system_stopped:
                         resume_system()
                         system_stopped = False
-
-                time.sleep(0.05)
 
         except Exception as e:
             logger.error(f"LIDAR error: {e} — retrying in 5s...")

@@ -4,6 +4,10 @@
 
 from mpu6050 import mpu6050
 import time
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Default I2C address for MPU6050 is 0x68
 sensor = mpu6050(0x68)
@@ -26,9 +30,9 @@ def read_gyro_accel():
     accel_data = sensor.get_accel_data()
     gyro_data = sensor.get_gyro_data()
     temp = sensor.get_temp()
-    print(f"Accelerometer: {accel_data}")
-    print(f"Gyroscope: {gyro_data}")
-    print(f"Temperature: {temp} C\n")
+    logger.info(f"Accelerometer: {accel_data}")
+    logger.info(f"Gyroscope: {gyro_data}")
+    logger.info(f"Temperature: {temp} C")
 
 
 # Simple yaw estimation by integrating gyro z-axis (degrees/sec)
@@ -54,4 +58,4 @@ if __name__ == "__main__":
             read_gyro_accel()
             time.sleep(0.5)
     except KeyboardInterrupt:
-        print("Exiting...")
+        logger.info("Exiting...")

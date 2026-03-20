@@ -7,6 +7,7 @@ import time
 import math
 from gpiozero import PWMOutputDevice, DigitalOutputDevice
 from distance_utils import update_distance_traveled
+from mpu6050_gyro import get_yaw
 
 
 # Configure logging
@@ -48,7 +49,7 @@ WHEEL_BASE_CM = 45.72  # Distance between wheel centers (18 inches = 45.72cm)
 
 # Motor speed settings
 DRIVE_SPEED = 0.2  # Duty cycle sent when motors are active (0.0 - 1.0)
-TURN_SPEED = 0.5  # Duty cycle for turning
+TURN_SPEED = 0.2  # Duty cycle for turning
 
 # Calibration values - TUNE THESE BY TESTING
 # Run calibration_test() to measure actual values
@@ -148,8 +149,6 @@ def handle_walk(quantity: float, paint: bool = True, **kwargs) -> bool:
 
     if paint:
         handle_spray_on()
-
-    from mpu6050_gyro import get_yaw
 
     moved_time = 0.0
     step = 0.05
@@ -253,7 +252,6 @@ def handle_turn(quantity: float, paint: bool = False, **kwargs) -> bool:
 def handle_arc(quantity: float, angle: float = 90, **kwargs) -> bool:
     """Draw an arc while spraying. Quantity = radius in cm, angle = degrees. Supports pause/resume."""
     global system_paused
-    from mpu6050_gyro import get_yaw
 
     radius = quantity
     # If angle is not provided, default to 90 degrees arc
@@ -308,8 +306,8 @@ def handle_arc(quantity: float, angle: float = 90, **kwargs) -> bool:
                 moved_time / total_duration
             ) * expected_yaw_change
             correction = Kp * yaw_error
-            left_speed = max(0.0, min(1.0, inner_speed - correction))
-            right_speed = max(0.0, min(1.0, outer_speed + correction))
+            left_speed = max(0.0, min(DRIVE_SPEED, inner_speed - correction))
+            right_speed = max(0.0, min(DRIVE_SPEED, outer_speed + correction))
             motor1_backward(left_speed)  # Left wheel clockwise
             motor2_forward(right_speed)  # Right wheel counterclockwise
             # --- End yaw correction ---
