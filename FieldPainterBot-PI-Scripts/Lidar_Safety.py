@@ -3,7 +3,7 @@ import threading
 import logging
 
 from Conversion_Service import set_system_paused
-from rplidar import RPLidar
+from rplidar import RPLidar, RPLidarException
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,37 +28,39 @@ def resume_system():
 
 def lidar_safety_loop():
     """
-    Keeps the scan iterator open continuously instead of
-    re-opening it on every call — fixes the byte-count errors.
+    Keeps the scan iterator open continuously.
+    - RPLidarException (buffer/protocol errors): hardware reset, fast retry (1s).
+    - Any other exception (USB loss, OS error): full reconnect after 5s.
     """
     global system_stopped
 
     while True:
         lidar = None
+        retry_delay = 5
         try:
             lidar = RPLidar(LIDAR_PORT, baudrate=115200)
+            lidar.start_motor()
+            time.sleep(1)  # allow motor to reach operating speed
             logger.info("LIDAR connected. Starting scan loop.")
 
-            # ✅ One persistent iterator for the lifetime of the connection
             last_processed = 0
-            for scan in lidar.iter_scans(max_buf_meas=500):
+            # 3000 measurements ≈ 8 full scans of headroom — prevents buffer overflow
+            for scan in lidar.iter_scans(max_buf_meas=3000):
                 now = time.time()
                 if now - last_processed < 0.05:
-                    continue  # Skip this scan but keep consuming from buffer
+                    continue  # throttle processing; iterator still drains the buffer
                 last_processed = now
 
-                front_distances = []
-                for _, angle, distance in scan:
-                    angle = angle % 360
-                    if (angle >= 330 or angle <= 30) and distance > 0:
-                        front_distances.append(distance)
+                front_distances = [
+                    distance
+                    for _, angle, distance in scan
+                    if distance > 0 and (angle % 360 >= 330 or angle % 360 <= 30)
+                ]
 
                 if not front_distances:
                     continue
 
                 min_distance = min(front_distances)
-                # logger.info(f"LIDAR min front distance: {min_distance:.1f} mm")
-                # print(f"LIDAR min front distance: {min_distance:.1f} mm")
 
                 if min_distance < DISTANCE_THRESHOLD:
                     if not system_stopped:
@@ -69,20 +71,33 @@ def lidar_safety_loop():
                         resume_system()
                         system_stopped = False
 
+        except RPLidarException as e:
+            # Buffer overflow or protocol error — hardware is still connected;
+            # send a reset command and retry quickly without a full USB reconnect.
+            retry_delay = 1
+            logger.warning(f"LIDAR protocol error: {e} — resetting and retrying in {retry_delay}s...")
+            if lidar:
+                try:
+                    lidar.stop()
+                    lidar.reset()
+                except Exception:
+                    pass
+
         except Exception as e:
-            logger.error(f"LIDAR error: {e} — retrying in 5s...")
-            print(f"LIDAR error: {e} - retrying in 5s...")
+            retry_delay = 5
+            logger.error(f"LIDAR error: {e} — retrying in {retry_delay}s...")
 
         finally:
             if lidar:
                 try:
                     lidar.stop()
+                    lidar.stop_motor()
                     lidar.disconnect()
                     logger.info("LIDAR disconnected cleanly.")
                 except Exception:
                     pass
 
-        time.sleep(5)  # Wait before reconnecting
+        time.sleep(retry_delay)
 
 
 def start_lidar_safety():
