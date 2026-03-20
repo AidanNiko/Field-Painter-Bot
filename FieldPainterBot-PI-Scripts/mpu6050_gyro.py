@@ -32,13 +32,49 @@ sensor = mpu6050(0x68)
 YAW_AXIS = "z"
 YAW_SIGN = -1
 
+# =============================================================================
+# CALIBRATION - computed at startup by averaging readings while stationary.
+# Keep the robot still during calibration.
+# Accel offsets bring x/y to 0 and z to 9.81 m/s² (gravity).
+# Gyro offsets bring all axes to 0 deg/s.
+# =============================================================================
+ACCEL_OFFSET = {"x": 0.0, "y": 0.0, "z": 0.0}
+GYRO_OFFSET  = {"x": 0.0, "y": 0.0, "z": 0.0}
+
+
+def calibrate(samples: int = 200, delay: float = 0.005) -> None:
+    """Sample the sensor while stationary and compute bias offsets."""
+    global ACCEL_OFFSET, GYRO_OFFSET
+    logger.info(f"Calibrating MPU6050 — keep the robot still ({samples} samples)...")
+    accel_sum = {"x": 0.0, "y": 0.0, "z": 0.0}
+    gyro_sum  = {"x": 0.0, "y": 0.0, "z": 0.0}
+    for _ in range(samples):
+        a = sensor.get_accel_data()
+        g = sensor.get_gyro_data()
+        for axis in ("x", "y", "z"):
+            accel_sum[axis] += a[axis]
+            gyro_sum[axis]  += g[axis]
+        time.sleep(delay)
+    ACCEL_OFFSET = {axis: accel_sum[axis] / samples for axis in ("x", "y", "z")}
+    GYRO_OFFSET  = {axis: gyro_sum[axis]  / samples for axis in ("x", "y", "z")}
+    # Leave gravity on the z-axis so z reads ~9.81 m/s² when flat
+    ACCEL_OFFSET["z"] -= 9.81
+    logger.info(f"Accel offsets: {ACCEL_OFFSET}")
+    logger.info(f"Gyro  offsets: {GYRO_OFFSET}")
+
+
+# Run calibration automatically when the module is imported / started
+calibrate()
+
 
 def read_gyro_accel():
     accel_data = sensor.get_accel_data()
-    gyro_data = sensor.get_gyro_data()
-    temp = sensor.get_temp()
-    logger.info(f"Accelerometer: {accel_data}")
-    logger.info(f"Gyroscope: {gyro_data}")
+    gyro_data  = sensor.get_gyro_data()
+    temp       = sensor.get_temp()
+    accel_cal  = {k: accel_data[k] - ACCEL_OFFSET[k] for k in accel_data}
+    gyro_cal   = {k: gyro_data[k]  - GYRO_OFFSET[k]  for k in gyro_data}
+    logger.info(f"Accelerometer (calibrated): {accel_cal}")
+    logger.info(f"Gyroscope     (calibrated): {gyro_cal}")
     logger.info(f"Temperature: {temp} C")
 
 
@@ -56,8 +92,8 @@ def get_yaw():
         return yaw
     dt = current_time - last_time
     last_time = current_time
-    # Use configured axis and sign to handle any mounting orientation
-    yaw += gyro_data[YAW_AXIS] * YAW_SIGN * dt
+    # Apply calibration offset then use configured axis and sign
+    yaw += (gyro_data[YAW_AXIS] - GYRO_OFFSET[YAW_AXIS]) * YAW_SIGN * dt
     return yaw
 
 
