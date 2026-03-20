@@ -9,6 +9,12 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+import logging
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Default I2C address for MPU6050 is 0x68
 sensor = mpu6050(0x68)
 
@@ -23,8 +29,9 @@ sensor = mpu6050(0x68)
 # which is CLOCKWISE viewed from above (rover turning right).
 # Negate so that a left/CCW turn gives a positive yaw increment.
 # =============================================================================
-YAW_AXIS = 'z'
+YAW_AXIS = "z"
 YAW_SIGN = -1
+
 
 def read_gyro_accel():
     accel_data = sensor.get_accel_data()
@@ -39,6 +46,7 @@ def read_gyro_accel():
 yaw = 0.0
 last_time = None
 
+
 def get_yaw():
     global yaw, last_time
     gyro_data = sensor.get_gyro_data()
@@ -51,6 +59,7 @@ def get_yaw():
     # Use configured axis and sign to handle any mounting orientation
     yaw += gyro_data[YAW_AXIS] * YAW_SIGN * dt
     return yaw
+
 
 if __name__ == "__main__":
     try:

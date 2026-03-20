@@ -53,8 +53,8 @@ TURN_SPEED = 0.2  # Duty cycle for turning
 
 # Calibration values - TUNE THESE BY TESTING
 # Run calibration_test() to measure actual values
-CM_PER_SECOND = 50.0  # How far robot travels per second at DRIVE_SPEED
-DEGREES_PER_SECOND = 90.0  # How fast robot rotates per second at TURN_SPEED
+CM_PER_SECOND = 106.68  # How far robot travels per second at DRIVE_SPEED
+DEGREES_PER_SECOND = 166.67  # How many degrees robot rotates per second at TURN_SPEED
 
 # Instruction type mappings - EASILY CHANGE THESE IF YOUR APP USES DIFFERENT NAMES
 INSTRUCTION_TYPES = {
@@ -308,8 +308,8 @@ def handle_arc(quantity: float, angle: float = 90, **kwargs) -> bool:
             correction = Kp * yaw_error
             left_speed = max(0.0, min(DRIVE_SPEED, inner_speed - correction))
             right_speed = max(0.0, min(DRIVE_SPEED, outer_speed + correction))
-            motor1_backward(left_speed)  # Left wheel clockwise
-            motor2_forward(right_speed)  # Right wheel counterclockwise
+            motor1_backward(left_speed)
+            motor2_forward(right_speed)
             # --- End yaw correction ---
             time.sleep(step)
             moved_time += step
