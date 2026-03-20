@@ -48,12 +48,12 @@ WHEEL_BASE_CM = 45.72  # Distance between wheel centers (18 inches = 45.72cm)
 
 # Motor speed settings
 DRIVE_SPEED = 0.2  # Duty cycle sent when motors are active (0.0 - 1.0)
-TURN_SPEED = 0.5  # Duty cycle for turning
+TURN_SPEED = 0.2  # Duty cycle for turning
 
 # Calibration values - TUNE THESE BY TESTING
 # Run calibration_test() to measure actual values
-CM_PER_SECOND = 50.0  # How far robot travels per second at DRIVE_SPEED
-DEGREES_PER_SECOND = 90.0  # How fast robot rotates per second at TURN_SPEED
+CM_PER_SECOND = 106.68  # How far robot travels per second at DRIVE_SPEED
+DEGREES_PER_SECOND = 166.67  # How fast robot rotates per second at TURN_SPEED
 
 # Instruction type mappings - EASILY CHANGE THESE IF YOUR APP USES DIFFERENT NAMES
 INSTRUCTION_TYPES = {
@@ -84,13 +84,13 @@ MOTOR2_PWM_PIN = 13  # Hardware PWM1
 
 # Motor 1 - BLDC Driver (ZS-X11H)
 motor1_pwm = PWMOutputDevice(
-    MOTOR1_PWM_PIN, frequency=50
+    MOTOR1_PWM_PIN, frequency=500
 )  # P pin - Speed control (hardware PWM)
 motor1_dir = DigitalOutputDevice(27)  # DIR pin - Direction
 
 # Motor 2 - BLDC Driver (ZS-X11H)
 motor2_pwm = PWMOutputDevice(
-    MOTOR2_PWM_PIN, frequency=50
+    MOTOR2_PWM_PIN, frequency=500
 )  # P pin - Speed control (hardware PWM)
 motor2_dir = DigitalOutputDevice(24)  # DIR pin - Direction
 
@@ -528,7 +528,7 @@ def get_instruction_progress():
 # =============================================================================
 
 
-def calibration_test_distance(test_seconds: float = 3.0):
+def calibration_test_distance(test_seconds: float = 2.0):
     """
     Drive both motors forward for a set time to measure distance traveled.
     Measure the distance in cm, then set: CM_PER_SECOND = distance_cm / test_seconds
@@ -546,7 +546,7 @@ def calibration_test_distance(test_seconds: float = 3.0):
     logger.info(f"Done! CM_PER_SECOND = measured_distance_cm / {test_seconds}")
 
 
-def calibration_test_rotation(test_seconds: float = 5.0):
+def calibration_test_rotation(test_seconds: float = 3.0):
     """
     Spin the robot CCW in place for a set time to measure rotation speed.
     Count full rotations, then set: DEGREES_PER_SECOND = (rotations * 360) / test_seconds
@@ -621,7 +621,7 @@ def translate_manual_instruction(instruction: dict) -> bool:
 
 
 if __name__ == "__main__":
-    STARTUP_DELAY = 60  # seconds to place rover before tests begin
+    STARTUP_DELAY = 30  # seconds to place rover before tests begin
     logger.info(
         f"Starting in {STARTUP_DELAY} seconds... Place the rover on the ground!"
     )
@@ -629,5 +629,5 @@ if __name__ == "__main__":
         logger.info(f"{i}...")
         time.sleep(1)
     logger.info("Starting calibration!")
-    calibration_test_distance()
-    # calibration_test_rotation()
+    #calibration_test_distance()
+    calibration_test_rotation()

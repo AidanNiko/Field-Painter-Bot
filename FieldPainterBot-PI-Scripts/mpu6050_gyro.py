@@ -5,6 +5,12 @@
 from mpu6050 import mpu6050
 import time
 
+import logging
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Default I2C address for MPU6050 is 0x68
 sensor = mpu6050(0x68)
 

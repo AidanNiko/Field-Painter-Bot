@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 LIDAR_PORT = "/dev/ttyUSB0"
-DISTANCE_THRESHOLD = 350  # mm
+DISTANCE_THRESHOLD = 475  # mm
 
 system_stopped = False
 
