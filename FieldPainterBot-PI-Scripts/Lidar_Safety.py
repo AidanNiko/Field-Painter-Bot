@@ -37,8 +37,13 @@ def lidar_safety_loop():
     while True:
         lidar = None
         retry_delay = 5
+        full_disconnect = True
         try:
             lidar = RPLidar(LIDAR_PORT, baudrate=115200)
+            # Flush stale bytes left in the serial buffer from any previous session.
+            # Without this, the response parser reads mid-packet and raises
+            # "wrong body size" / wrong response header errors.
+            lidar._serial_port.reset_input_buffer()
             lidar.start_motor()
             time.sleep(1)  # allow motor to reach operating speed
             logger.info("LIDAR connected. Starting scan loop.")
@@ -72,23 +77,27 @@ def lidar_safety_loop():
                         system_stopped = False
 
         except RPLidarException as e:
-            # Buffer overflow or protocol error — hardware is still connected;
-            # send a reset command and retry quickly without a full USB reconnect.
+            # Buffer overflow or protocol error — USB is still alive;
+            # issue a hardware reset and re-enter the scan loop without disconnecting.
             retry_delay = 1
+            full_disconnect = False
             logger.warning(f"LIDAR protocol error: {e} — resetting and retrying in {retry_delay}s...")
             if lidar:
                 try:
                     lidar.stop()
                     lidar.reset()
+                    time.sleep(0.5)  # wait for reset to complete
+                    lidar._serial_port.reset_input_buffer()  # discard corrupt bytes
                 except Exception:
                     pass
 
         except Exception as e:
             retry_delay = 5
+            full_disconnect = True
             logger.error(f"LIDAR error: {e} — retrying in {retry_delay}s...")
 
         finally:
-            if lidar:
+            if lidar and full_disconnect:
                 try:
                     lidar.stop()
                     lidar.stop_motor()
