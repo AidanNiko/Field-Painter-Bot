@@ -27,3 +27,53 @@ def progress_check():
     current, total = get_instruction_progress()
     progress = (current / total) * 100 if total > 0 else 0
     return progress
+
+
+# -----------------------------
+# PAINT LEVEL (Load Cell)
+# -----------------------------
+import time
+import statistics
+try:
+    from hx711 import HX711
+    # USER SETTINGS
+    DOUT_PIN = 7   # HX711 DT
+    SCK_PIN = 8    # HX711 SCK
+    CALIBRATION_FACTOR = -300
+    EMPTY_WEIGHT = 90
+    FULL_WEIGHT = 400
+    READINGS = 5
+
+    hx = HX711(dout_pin=DOUT_PIN, pd_sck_pin=SCK_PIN)
+    hx.set_reading_format("MSB", "MSB")
+    hx.set_reference_unit(CALIBRATION_FACTOR)
+    hx.reset()
+    hx.tare()
+    time.sleep(2)
+    _hx711_ready = True
+except Exception as e:
+    _hx711_ready = False
+    hx = None
+
+def get_paint_level():
+    """
+    Returns (percentage, paint_weight, total_weight) or (None, None, None) if error.
+    """
+    if not _hx711_ready or hx is None:
+        return (None, None, None)
+    try:
+        values = [hx.get_weight(3) for _ in range(READINGS)]
+        weight = statistics.median(values)
+        weight = max(0, weight)
+        paint_weight = max(0, weight - EMPTY_WEIGHT)
+        total_paint_capacity = FULL_WEIGHT - EMPTY_WEIGHT
+        if total_paint_capacity <= 0:
+            return (None, None, None)
+        percentage = (paint_weight / total_paint_capacity) * 100
+        percentage = max(0, min(100, percentage))
+        # Power cycle HX711 (reduces noise)
+        hx.power_down()
+        hx.power_up()
+        return (percentage, paint_weight, weight)
+    except Exception:
+        return (None, None, None)

@@ -20,7 +20,7 @@ from Conversion_Service import (
     set_system_paused,
     set_system_cancelled,
 )
-from status_checks import battery_percent, read_battery_voltage, progress_check
+from status_checks import battery_percent, read_battery_voltage, progress_check, get_paint_level
 import logging
 
 
@@ -70,12 +70,24 @@ def handle_client(client_sock):
                 except Exception as e:
                     logger.error("Battery status error: %s", e)
 
+
                 try:
                     progress_msg = f"PROGRESS:{int(progress_check())}"
                     logger.info("Sending progress status: %s", progress_msg)
                     client_sock.send(progress_msg.encode("utf-8"))
                 except Exception as e:
                     logger.error("Progress status error: %s", e)
+
+                try:
+                    percentage, paint_weight, total_weight = get_paint_level()
+                    if percentage is not None:
+                        paint_msg = f"SPRAY:{int(percentage)}"
+                    else:
+                        paint_msg = "SPRAY:ERR"
+                    logger.info("Sending paint status: %s", paint_msg)
+                    client_sock.send(paint_msg.encode("utf-8"))
+                except Exception as e:
+                    logger.error("Paint status error: %s", e)
 
             except Exception as e:
                 logger.error("Unknown battery update error: %s", e)
